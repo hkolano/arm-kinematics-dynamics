@@ -111,7 +111,7 @@ T_jawsA = SE3(R_a, t_a);
 %% Calculations
 Tnaught = SE3();
 p1 = T_0g.tv;
-T_0f = SE3(T_0g.T*T_gf.T);
+T_0f = SE3(T_0g.T*T_gf.T)
 p2 = T_0f.tv;
 T_0e = SE3(T_0f.T*T_fe.T);
 p3 = T_0e.tv;

@@ -15,7 +15,7 @@ Link3 = Revolute('a',   0,      'alpha', pi/2,  'd',    -180,   'offset', pi/2, 
 Link4 = Revolute('a',   0,      'alpha', 0,     'd',    0,      'offset', -pi/2,    'qlim', [0, pi/2]);
 
 
-Qdegrees= [0 0 0 0 0];%[20, 20, 45, 30, 0];% 
+Qdegrees= [20, 20, 45, 30, 0];% [0 0 0 0 0];%
 Qspace = [0 0 0 0 0];
 
 % Convert joint space from degrees to radians
@@ -25,9 +25,9 @@ end
 
 % make serial link object
 alphaArm = BaseL + Link1 + Link2 + Link3 + Link4;
+alphaArm.plotopt = 'name', 'Alpha', 'jaxes';
 % show the arm
-alphaArm.name = 'Alpha';
-alphaArm.teach(Qspace, 'jointdiam', 1.5)
+alphaArm.plot('name', 'Alpha'
 % alphaArm.teach(Qspace)
 % Calculate the end effector position
 Talpha_end = alphaArm.fkine(Qspace)
