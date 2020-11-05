@@ -72,11 +72,11 @@ Joint_Frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
 
 hold on
 trplot(Tnaught.T)
-trplot(T_0e.T, 'color', 'c', 'frame', 'E')
-trplot(T_0d.T, 'color', 'r', 'frame', 'D')
-trplot(T_0c.T, 'color', 'g', 'frame', 'C')
-trplot(T_0b.T, 'color', 'b', 'frame', 'B')
-trplot(T_0a.T, 'color', 'm', 'frame', 'A')
+trplot(T_0e.T, 'color', 'c', 'frame', 'E', 'rviz')
+trplot(T_0d.T, 'color', 'r', 'frame', 'D', 'rviz')
+trplot(T_0c.T, 'color', 'g', 'frame', 'C', 'rviz')
+trplot(T_0b.T, 'color', 'b', 'frame', 'B', 'rviz')
+trplot(T_0a.T, 'color', 'm', 'frame', 'A', 'rviz')
 grid on
 % hold on
 
