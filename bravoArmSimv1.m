@@ -1,3 +1,4 @@
+clf
 % dhparams in order: [a alpha d theta]
 % lengths in mm
 th_a = atan2(5.2, 293.55);
@@ -17,14 +18,21 @@ BLink4 = Revolute('a',   40.8,   'alpha', -pi/2, 'd',    0.0,     'offset', 0.0,
 BLink5 = Revolute('a',   0,      'alpha', pi/2,  'd',    -223.5,  'offset', 0.0);
 BLink6 = Revolute('a',   120.0,  'alpha', 0,     'd',    0,       'offset', -pi/2);
 
-Qdegrees= zeros(7);%[45, 45, 45, 45, 45, 45, 45];
-Qspace = zeros(7);        
-
-% Convert joint space from degrees to radians
-for i = 1:length(Qdegrees)
-    Qspace(i) = Qdegrees(i)*pi/180;
-end   
 bravoArm = BaseL + BLink1 + BLink2 + BLink3 + BLink4 + BLink5 + BLink6;
 bravoArm.name = 'Bravo';
-bravoArm.teach(Qspace, 'jointdiam', 1);
-Tbravo_end = bravoArm.fkine(Qspace)
+
+Qspace0 = zeros(1, 7);
+M_home = bravoArm.fkine(Qspace0);
+
+Qspace1 = pi/180*[0 10 0 0 0 0 0];
+Qspace2 = pi/180*[20, 0, 20, 45, 10, 30, 10];
+
+[TW, T0] = bravoArm.twists(Qspace0);
+T_end = prod([TW.exp(Qspace2) T0])
+
+% bravoArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nojoints');
+% hold on
+% trplot(T_end, 'length', 100, 'thick', 1, 'rviz')
+
+s_jacob = bravoArm.jacob0(Qspace1)
+b_jacob = bravoArm.jacobe(Qspace1)
