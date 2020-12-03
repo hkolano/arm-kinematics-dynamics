@@ -36,16 +36,14 @@ T_end = prod([TW.exp(Qspace2) T0]);
 %% ---------- Dynamics ----------
 g = [0; 0; -9.8];
 thetalist = Qspace0.';
-dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [0; 0; 0; 0; 0];
-Ftip = [0; 0; 0; 0; 0; 0];
-% M = MassMatrix(thetalist, Mlist, Glist, Slist)
-taulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, Mlist, Glist, Slist)
+dthetalist = [0; 0; 0];
+ddthetalist = [0; 0; 0];
+M = MassMatrix(thetalist, Mlist, Glist, Slist)
 
 %% ---------- Plotting ----------
 
 % Show the arm graphically
-alphaArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nobase');
+alphaArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nobase', 'jointdiam', .5);
 hold on
 
 % plot the base in the correct orientation
@@ -54,10 +52,7 @@ surf(Z*150, Y, X, 'FaceColor', 'k');
 
 % plot other coordinate frames
 % trplot(T_end, 'length', 100, 'thick', 1, 'rviz')
-for i = 1:length(a_link_frames)
-    trplot(a_link_frames(i).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
-end
-% trplot(a_link_frames(1).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
+trplot(a_link_frames(1).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
 %% ---------- Jacobians ----------
 
 % Calculate the jacobians at a configuration
