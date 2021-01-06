@@ -1,6 +1,10 @@
 %{
 Some shenanigans with dynamics on the Alpha arm.
-Last modified by Hannah Kolano 12/2/2020
+Last modified by Hannah Kolano 1/5/2021
+
+Definitely not getting appropriate tau values right now.
+Suspicion: links were labelled wrong. Confirm that M_i,j values are as
+described in MR. 
 
 Current assumptions:
 In air
@@ -34,7 +38,7 @@ M_home = alphaArm.fkine(Qspace0);
 T_end = prod([TW.exp(Qspace2) T0]);
 
 %% ---------- Dynamics ----------
-g = [0; 0; -9.8];
+g = [0; 0; -9807]; % in mm/s2
 thetalist = Qspace0.';
 dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
@@ -54,10 +58,10 @@ surf(Z*150, Y, X, 'FaceColor', 'k');
 
 % plot other coordinate frames
 % trplot(T_end, 'length', 100, 'thick', 1, 'rviz')
-for i = 1:length(a_link_frames)
-    trplot(a_link_frames(i).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
-end
-% trplot(a_link_frames(1).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
+% for i = 1:length(a_link_frames)
+%     trplot(a_link_frames(i).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');
+% end
+
 %% ---------- Jacobians ----------
 
 % Calculate the jacobians at a configuration

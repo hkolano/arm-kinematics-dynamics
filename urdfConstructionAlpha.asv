@@ -166,7 +166,8 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
 % %     trplot(T_0c.T, 'color', 'k', 'frame', 'Joint C')
 % %     trplot(T_0b.T, 'color', 'k', 'frame', 'Joint B')
     trplot(T_0a.T, 'color', 'k', 'frame', 'Joint A');
-%     trplot(T_0_L0.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')%'color', 'm', 'frame', 'Link 0')
+    for transform in alp
+    trplot(T_0_L0.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')%'color', 'm', 'frame', 'Link 0')
     xlabel('X')
     ylabel('Y')
     grid on
