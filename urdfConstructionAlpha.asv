@@ -12,6 +12,7 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     %% ---------- JOINT FRAMES ----------
     displacements = cell(5, 1);
     rotations = cell(5, 1);
+    RotMats = cell(5, 1);
     Joint_to_joint_transforms = cell(5, 1); %  order:  T_0e, T_ed, T_dc, T_cb, T_ba 
     
     % Joint E frame wrt Base
@@ -30,29 +31,22 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     displacements{1} = [0 0 -180]; % was 0 0 -190
     rotations{1} = [0 1.5707 1.5707]; % was 0 0 1.5707
     
-    % Transform to meters if necessary
+    for i = 1:5
+        RotMat = rpy2r(rotations{i});
+        Joint_to_joint_transforms{i} = SE3(RotMat, displacements{i})
+    end
+    
     if in_meters == 1
         for i = 1:5
             displacements{i} = displacements{i}/1000.0;
         end
     end
-    
-    % Get joint transforms in SE3 form
-    for i = 1:5
-        % transform RPY into rotation matrix
-        RotMat = rpy2r(rotations{i});
-        % Form SE3 object from rotation matrix and displacement
-        Joint_to_joint_transforms{i} = SE3(RotMat, displacements{i});
-        % order:  T_0e, T_ed, T_dc, T_cb, T_ba 
-    end
-    
-    % Get joint coordinate frames from origin (at home position)
+
     Tnaught = SE3();
-    T_0e = Joint_to_joint_transforms{1};
-    T_0d = SE3(T_0e.T*Joint_to_joint_transforms{2}.T);
-    T_0c = SE3(T_0d.T*Joint_to_joint_transforms{3}.T);
-    T_0b = SE3(T_0c.T*Joint_to_joint_transforms{4}.T);
-    T_0a = SE3(T_0b.T*Joint_to_joint_transforms{5}.T);
+    T_0d = SE3(T_0e.T*T_ed.T);
+    T_0c = SE3(T_0d.T*T_dc.T);
+    T_0b = SE3(T_0c.T*T_cb.T);
+    T_0a = SE3(T_0b.T*T_ba.T);
 
     alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
     
