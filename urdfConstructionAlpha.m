@@ -8,11 +8,11 @@
 function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfConstructionAlpha()
     clf; 
     alphaArm = alphaSetup();
-    BaseL = alphaArm.links(1);
-    Link1 = alphaArm.links(2);
-    Link2 = alphaArm.links(3);
-    Link3 = alphaArm.links(4);
-    Link4 = alphaArm.links(5);
+    Link1 = alphaArm.links(1);
+    Link2 = alphaArm.links(2);
+    Link3 = alphaArm.links(3);
+    Link4 = alphaArm.links(4);
+    Link5 = alphaArm.links(5);
     in_meters = 0; % if == 1, outputs values in m instead of mm
     
     %% ---------- JOINT FRAMES ----------
@@ -105,25 +105,25 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     %% ---------- LINK FRAMES ----------
     rpy0 = [0 0 0];
     R0 = rpy2r(rpy0);
-    T_link0_from_jointE = SE3(R0, BaseL.r);
-    T_0_L0 = SE3(T_0e.T*T_link0_from_jointE.T);
-        
     T_link1_from_jointE = SE3(R0, Link1.r);
     T_0_L1 = SE3(T_0e.T*T_link1_from_jointE.T);
+        
+    T_link2_from_jointE = SE3(R0, Link2.r);
+    T_0_L2 = SE3(T_0e.T*T_link2_from_jointE.T);
     
-    T_link2_from_jointD = SE3(R0, Link2.r);
-    T_0_L2 = SE3(T_0d.T*T_link2_from_jointD.T);
+    T_link3_from_jointD = SE3(R0, Link3.r);
+    T_0_L3 = SE3(T_0d.T*T_link3_from_jointD.T);
     
-    T_link3_from_jointC = SE3(R0, Link3.r);
-    T_0_L3 = SE3(T_0c.T*T_link3_from_jointC.T);
+    T_link4_from_jointC = SE3(R0, Link4.r);
+    T_0_L4 = SE3(T_0c.T*T_link4_from_jointC.T);
     
-    T_link4_from_jointB = SE3(R0, Link4.r);
-    T_0_L4 = SE3(T_0b.T*T_link4_from_jointB.T);
+    T_link5_from_jointB = SE3(R0, Link5.r);
+    T_0_L5 = SE3(T_0b.T*T_link5_from_jointB.T);
     
     T_ee_from_jointA = SE3(R0, [0 0 -82]); % jaw1 x=-10, jaw2 x=-10; both y = -45
-    T_0_ee = SE3(T_0_L4.T*T_ee_from_jointA.T);
+    T_0_ee = SE3(T_0_L5.T*T_ee_from_jointA.T);
     
-    alpha_link_frames = [T_0_L0, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
+    alpha_link_frames = [T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_L5, T_0_ee];
     
     %% ---------- Relative link frames (M) ----------
     num_links = length(alpha_link_frames);
@@ -144,7 +144,7 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
         M_forward = [M_forward M_jminus1_j];
     end
 
-    Mlist = cat(3, SE3(T_0_L0.inv).T, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
+    Mlist = cat(3, T_0_L1.T, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
     
     %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
@@ -160,12 +160,11 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
 
     %% ---------- VIEWING ----------
     hold on
-% %     trplot(Tnaught.T, 'color', 'k', 'frame', 'base')
-% %     trplot(T_0e.T, 'color', 'k', 'frame', 'Joint E')
-% %     trplot(T_0d.T, 'color', 'k', 'frame', 'Joint D')
-% %     trplot(T_0c.T, 'color', 'k', 'frame', 'Joint C')
-% %     trplot(T_0b.T, 'color', 'k', 'frame', 'Joint B')
-    trplot(T_0a.T, 'color', 'k', 'frame', 'Joint A');
+    for i = 1:6
+        frame = alpha_link_frames(i);
+        trplot(frame.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')
+    end
+%         trplot(T_0a.T, 'color', 'k', 'frame', 'Joint A');
 %     trplot(T_0_L0.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')%'color', 'm', 'frame', 'Link 0')
     xlabel('X')
     ylabel('Y')
