@@ -19,9 +19,9 @@ addpath('C:\Users\hkolano\Documents\GitHub\ModernRobotics\packages\MATLAB\mr')
 %% Import the arm setup
 alphaArm = alphaSetup();
 [a_joint_frames, a_link_frames, Mlist, Glist, Slist] = urdfConstructionAlpha();
-% Link frames: [ 0 1 2 3 4 jaws ]
-% Joint frames: [ origin E D C B A ] (ie origin 0 1 2 3 4)
-% M(i) = M_i_(i-1)  where i = link frame # // M(1) = M_1_0, M(2) = M_2_1
+% alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
+% alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
+% M(i) = M_(i-1)_i  where i = link frame # // M(1) = M_0_1, M(2) = M_1_2
 
 % Example joint configurations
 Qspace0 = zeros(1, 5); % home
@@ -38,13 +38,14 @@ M_home = alphaArm.fkine(Qspace0);
 T_end = prod([TW.exp(Qspace2) T0]);
 
 %% ---------- Dynamics ----------
-g = [0; 0; -9807]; % in mm/s2
-thetalist = Qspace0.';
-dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [0; 0; 0; 0; 0];
+Slist4dof = Slist(:, 1:4);
+g = [0; 0; -9.807]; % in m/s2
+thetalist = [0; 0; 0; 0];
+dthetalist = [0; 0; 0; 0];
+ddthetalist = [0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 % M = MassMatrix(thetalist, Mlist, Glist, Slist)
-taulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, Mlist, Glist, Slist)
+taulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, Mlist, Glist, Slist4dof)
 
 %% ---------- Plotting ----------
 
