@@ -30,7 +30,7 @@ Qspace2 = pi/180*[20, 0, 20, 45, 10, 30, 10];
 [TW, T0] = bravoArm.twists(Qspace0);
 T_end = prod([TW.exp(Qspace2) T0])
 
-% bravoArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nojoints');
+bravoArm.teach(Qspace0, 'jointdiam', 1, 'jvec');
 % hold on
 % trplot(T_end, 'length', 100, 'thick', 1, 'rviz')
 

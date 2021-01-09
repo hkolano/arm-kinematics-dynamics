@@ -1,5 +1,9 @@
+%{
+1/8/21: Checked alpha_joint_frames and alpha_link frames for correctness.
+All good. 
+%}
 
-function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfConstructionAlpha()
+function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha()
     clf; 
     alphaArm = alphaSetup();
     Base = alphaArm.links(1);
@@ -7,7 +11,7 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     Link2 = alphaArm.links(3);
     Link3 = alphaArm.links(4);
     Link4 = alphaArm.links(5);
-    in_meters = 1; % if == 1, outputs values in m instead of mm
+    in_meters = 1; % if == 1, outputs values in m, elsewise in mm
     
     %% ---------- JOINT FRAMES ----------
     displacements = cell(5, 1);
@@ -56,13 +60,7 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
 
     alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
     
-    %% ---------- TWISTS ----------
-    [TW, T0] = alphaArm.twists();
-    Slist = [];
-    for i = 1:length(TW)
-        Slist = [Slist TW(i).S];
-    end
-    
+
     %% ---------- LINK FRAMES ----------
     R0 = rpy2r([0 0 0]);
     T_base_from_jointE = SE3(R0, Base.r);
@@ -80,7 +78,11 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     T_link4_from_jointB = SE3(R0, Link4.r);
     T_0_L4 = SE3(T_0b.T*T_link4_from_jointB.T);
     
-    T_ee_from_jointA = SE3(R0, [0 0 -82]); % jaw1 x=-10, jaw2 x=-10; both y = -45
+    jaw_disp = -82;
+    if in_meters == 1
+        jaw_disp = jaw_disp/1000.0;
+    end
+    T_ee_from_jointA = SE3(R0, [0 0 jaw_disp]); % jaw1 x=-10, jaw2 x=-10; both y = -45
     T_0_ee = SE3(T_0_L4.T*T_ee_from_jointA.T);
     
     alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
@@ -93,8 +95,8 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     
     %T_L1_0 = T_0_L1.inv;
     for i = 1:num_links
-        inv_a_link_frames = [inv_a_link_frames alpha_link_frames(i).inv];
-    end
+        inv_a_link_frames = [inv_a_link_frames SE3(inv(alpha_link_frames(i).T))];
+    end   
     
     for j = 2:num_links
         M_j_jminus1 = SE3(inv_a_link_frames(j).T*alpha_link_frames(j-1).T);
@@ -104,7 +106,25 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
         M_forward = [M_forward M_jminus1_j];
     end
 
-    Mlist = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
+    % M_0_L1, M_L1_L2, M_L2_L3, M_L3_L4, M_L4_L5
+    MlistForward = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
+    MlistBackward = cat(3, M_backward(1).T, M_backward(2).T, M_backward(3).T, M_backward(4).T, M_backward(5).T);
+    %% ---------- TWISTS ----------
+    % Twists in space frame
+    [TW, T0] = alphaArm.twists();
+    Slist = [];
+    for i = 1:length(TW)
+        Slist = [Slist TW(i).S];
+    end
+    
+    % Twists in link frames
+    Alist = [];
+    for i = 1:5
+        S_i = Slist(:,i);
+        A_i = Ad(inv_a_link_frames(i+1))*S_i;
+        Alist = [Alist A_i];
+    end
+     
     
     %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
@@ -117,18 +137,20 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
         Gi_matrices{i} = G_i;
     end
     
-    Glist = cat(3, Gi_matrices{1}, Gi_matrices{2}, Gi_matrices{3}, Gi_matrices{4})
+    Glist = cat(3, Gi_matrices{1}, Gi_matrices{2}, Gi_matrices{3}, Gi_matrices{4});
 
     %% ---------- VIEWING ----------
-%     hold on
+    hold on
+
 %     for i = 1:6
 %         frame = alpha_link_frames(i);
-%         trplot(frame.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')
+%         trplot(frame.T, 'length', 0.15, 'thick', .75, 'rviz')
 %     end
+    trplot(alpha_link_frames(6).T, 'length', 0.15, 'thick', .75, 'rviz')
 %         trplot(T_0a.T, 'color', 'k', 'frame', 'Joint A');
 %     trplot(T_0a.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')%'color', 'm', 'frame', 'Link 0')
-%     xlabel('X')
-%     ylabel('Y')
-%     grid on
+    xlabel('X')
+    ylabel('Y')
+    grid on
 end
 
