@@ -18,7 +18,7 @@ addpath('C:\Users\hkolano\Documents\GitHub\ModernRobotics\packages\MATLAB\mr')
 
 %% Import the arm setup
 alphaArm = alphaSetup();
-[a_joint_frames, a_link_frames, Mlist, Glist, Slist, Alist] = urdfConstructionAlpha();
+[a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
 % alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
 % alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
 % M(i) = M_(i-1)_i  where i = link frame # // M(1) = M_0_1, M(2) = M_1_2
@@ -38,7 +38,7 @@ M_home = alphaArm.fkine(Qspace0);
 T_end = prod([TW.exp(Qspace1) T0]);
 
 %% ---------- Dynamics ----------
-Slist4dof = Slist(:, 1:4)
+Slist4dof = Slist(:, 1:4);
 g = [0; 0; -9.807]; % in m/s2
 thetalist = transpose(Qspace1(1:4));
 dthetalist = [0; 0; 0; 0];

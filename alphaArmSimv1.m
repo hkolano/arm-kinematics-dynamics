@@ -38,7 +38,7 @@ M_home = alphaArm.fkine(Qspace0);
 T_end = prod([TW.exp(Qspace1) T0]);
 
 %% ---------- Dynamics ----------
-Slist4dof = Slist(:, 1:4)
+Slist4dof = Slist(:, 1:4);
 g = [0; 0; -9.807]; % in m/s2
 thetalist = transpose(Qspace1(1:4));
 dthetalist = [0; 0; 0; 0];
