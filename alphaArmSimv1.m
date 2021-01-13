@@ -43,14 +43,15 @@ ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
 % MR Mass Matrix and inverse dynamics
-M_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
-% MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
+MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
 
-% basicInverseDynamics output
+% basicInverseDynamics output algorithm
+closedform_MassMatrix = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
 basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip)
 
 % Peter Corke mass matrix and inverse dynamics
-M_PC = alphaArm.inertia(thetalist.')
+MassMatrix_PC = alphaArm.inertia(thetalist.')
 tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
 
 %% ---------- Plotting ----------

@@ -4,7 +4,7 @@ Last modified by Hannah Kolano 1/12/2021
 
 %}
 
-function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
     [a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
     alphaArm = alphaSetup();
@@ -29,14 +29,12 @@ function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddth
     for i = 2:5
         % Get variables for this link
         A_i = Alist(:, i);
-        theta_i = Qspace(i);
+        theta_i = Qspace();
         M_i_iminus1 = MlistBackward(:,:,i);
         T_i_iminus1 = SE3(FKinSpace(M_i_iminus1, [-A_i], [theta_i]));
-        W_mat(i*6-5:i*6,(i-1)*6-5:(i-1)*6) = Ad(T_i_iminus1); 
+        W_mat(i*6:(i+1)*6,(i-1)*6:i*6) = Ad(T_i_minus1); 
     end
     
-    L_mat = inv(eye(30)-W_mat);
-    
-    MassMatrix = A_mat.'*L_mat.'*G_mat*L_mat*A_mat;
+    W_mat
    
 end

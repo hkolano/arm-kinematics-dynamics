@@ -1,7 +1,7 @@
 
 function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip)
     % Get kinematic and dynamic values
-    [a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
+    [~, ~, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
     
     % Twist of base in world frame 
     V0 = [0; 0; 0; 0; 0; 0];
