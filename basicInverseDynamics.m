@@ -1,5 +1,5 @@
 
-function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip)
     % Get kinematic and dynamic values
     [a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
     
