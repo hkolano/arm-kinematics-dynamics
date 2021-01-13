@@ -10,6 +10,8 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     alphaArm = alphaSetup();
     
     Qspace0 = [0; 0; 0; 0; 0];
+    
+    goalInertiaMatrix = alphaArm.inertia(Qspace0.')
     b_jacob = alphaArm.jacobe(Qspace0)
     
    % Find mass matrix

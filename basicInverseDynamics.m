@@ -14,9 +14,9 @@ function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist,
     DeltaLinkTwists = {};
     DeltaLinkTwists{1} = V0_dot;
     
-    T_frames_from_tip{5} = SE3(MlistBackward(:,:,5));
-    ForcesThrough{5} = Ftip;
-    ActuatorTorques = [0; 0; 0; 0];
+    T_frames_from_tip{6} = SE3(MlistBackward(:,:,6));
+    ForcesThrough{6} = Ftip;
+    ActuatorTorques = [0; 0; 0; 0; 0];
     
     % Forward iterations
     for i = 1:dof
@@ -54,7 +54,7 @@ function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist,
         ForcesThrough{j} = F_j;
         
         % Find torque of actuator
-        tau_j = transpose(F_j)*A_j
-        ActuatorTorques(j) = tau_j
+        tau_j = transpose(F_j)*A_j;
+        ActuatorTorques(j) = tau_j;
     end
 end

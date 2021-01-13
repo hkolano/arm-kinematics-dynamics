@@ -38,26 +38,28 @@ M_home = alphaArm.fkine(Qspace0);
 T_end = prod([TW.exp(Qspace1) T0]);
 
 %% ---------- Dynamics ----------
-Slist4dof = Slist(:, 1:4);
 g = [0; 0; -9.807]; % in m/s2
-thetalist = transpose(Qspace1(1:4));
-dthetalist = [0; 0; 0; 0];
-ddthetalist = [0; 0; 0; 0];
+thetalist = transpose(Qspace0(1:5));
+dthetalist = [0; 0; 0; 0; 0];
+ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
-% M = MassMatrix(thetalist, Mlist, Glist, Slist)
-taulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, Mlist, Glist, Slist4dof)
+M = MassMatrix(thetalist, MlistForward, Glist, Slist)
+%MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+% basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
 
 %% ---------- Plotting ----------
 
 % Show the arm graphically
-alphaArm.plot(Qspace1, 'jointdiam', 1.5, 'jvec', 'nobase');
+alphaArm.plot(Qspace0, 'jointdiam', 1.5, 'jvec', 'nobase');
 hold on
 
 % plot the base in the correct orientation
-[X, Y, Z] = cylinder(20);
-surf(Z*150, Y, X, 'FaceColor', 'k');
+[X, Y, Z] = cylinder(.020);
+surf(Z*.25, Y, X, 'FaceColor', 'k');
 
 % plot other coordinate frames
+% trplot(a_joint_frames(6).T, 'length', 0.15, 'thick', .75, 'rviz')
+% trplot(a_link_frames(7).T, 'length', 0.15, 'thick', .75, 'rviz')
 % trplot(T_end, 'length', 0.2, 'thick', 1, 'rviz')
 % for i = 1:length(a_link_frames)
 %     trplot(a_link_frames(i).T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0');

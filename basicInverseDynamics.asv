@@ -14,8 +14,9 @@ function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist,
     DeltaLinkTwists = {};
     DeltaLinkTwists{1} = V0_dot;
     
-    T_frames_from_tip{5} = SE3(MlistBackward(:,:,5));
-    ForcesThrough{5} = Ftip;
+    T_frames_from_tip{6} = SE3(MlistBackward(:,:,6));
+    ForcesThrough{6} = Ftip;
+    ActuatorTorques = [0; 0; 0; 0; 0];
     
     % Forward iterations
     for i = 1:dof
@@ -41,16 +42,19 @@ function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist,
     end
     
     for j = dof:-1:1
-        G_j = Glist(:,:,j)
-        F_jplus1 = ForcesThrough{j+1}
+        G_j = Glist(:,:,j);
+        F_jplus1 = ForcesThrough{j+1};
         V_j = LinkTwists{j+1};
-        Vdot_j = DeltaLinkTwists{j+1}
-        T_jplus1_j = T_frames_from_tip{j+1}
+        Vdot_j = DeltaLinkTwists{j+1};
+        T_jplus1_j = T_frames_from_tip{j+1};
+        A_j = Alist(:, j);
         
         % Calculate wrench transmitted through joint i to link {i}
         F_j = transpose(Ad(T_jplus1_j))*F_jplus1 + G_j*Vdot_j - transpose(ad(V_j))*G_j*V_j
         ForcesThrough{j} = F_j;
         
-        % Find 1D to
+        % Find torque of actuator
+        tau_j = transpose(F_j)*A_j;
+        ActuatorTorques(j) = tau_j;
     end
 end

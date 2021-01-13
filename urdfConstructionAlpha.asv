@@ -3,7 +3,7 @@
 All good. 
 %}
 
-function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfConstructionAlpha()
+function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha()
     clf; 
     alphaArm = alphaSetup();
     Base = alphaArm.links(1);
@@ -88,17 +88,17 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
     
     %% ---------- Relative link frames (M) ----------
-    num_links = length(alpha_link_frames);
+    num_link_frames = length(alpha_link_frames);
     inv_a_link_frames = [];
     M_backward = [];
     M_forward = [];
     
     %T_L1_0 = T_0_L1.inv;
-    for i = 1:num_links
+    for i = 1:num_link_frames
         inv_a_link_frames = [inv_a_link_frames SE3(inv(alpha_link_frames(i).T))];
     end   
     
-    for j = 2:num_links
+    for j = 2:num_link_frames
         M_j_jminus1 = SE3(inv_a_link_frames(j).T*alpha_link_frames(j-1).T);
         M_backward = [M_backward M_j_jminus1];
         
@@ -106,8 +106,9 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
         M_forward = [M_forward M_jminus1_j];
     end
 
-    % M_0_L1, M_L1_L2, M_L2_L3, M_L3_L4, M_L4_L5
-    Mlist = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
+    % M_0_L1, M_L1_L2, M_L2_L3, M_L3_L4, M_L4_ee
+    MlistForward = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T);
+    MlistBackward = cat(3, M_backward(1).T, M_backward(2).T, M_backward(3).T, M_backward(4).T, M_backward(5).T);
     
     %% ---------- TWISTS ----------
     % Twists in space frame
@@ -118,38 +119,25 @@ function [alpha_joint_frames, alpha_link_frames, Mlist, Glist, Slist] = urdfCons
     end
     
     % Twists in link frames
-    for i = 1:length(Slist)
-        S_i = Slist(i);
-        
+    Alist = [];
+    for i = 1:5
+        S_i = Slist(:,i);
+        A_i = Ad(inv_a_link_frames(i+1))*S_i;
+        Alist = [Alist A_i];
     end
-    
-    
+     
     
     %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
     
     for i = 1:4
-        % Ignore base
         link = alphaArm.links(i+1);
         G_i = [link.I(1,:) 0 0 0; link.I(2,:) 0 0 0; link.I(3,:) 0 0 0; ...
             0 0 0 link.m 0 0; 0 0 0 0 link.m 0; 0 0 0 0 0 link.m;];
         Gi_matrices{i} = G_i;
     end
     
-    Glist = cat(3, Gi_matrices{1}, Gi_matrices{2}, Gi_matrices{3}, Gi_matrices{4});
+    Glist = cat(3, Gi_matrices{1}, Gi_matrices{2}, Gi_matrices{3}, Gi_matrices{4}, Gi_matrices{5});
 
-    %% ---------- VIEWING ----------
-    hold on
-
-%     for i = 1:6
-%         frame = alpha_link_frames(i);
-%         trplot(frame.T, 'length', 0.15, 'thick', .75, 'rviz')
-%     end
-    trplot(alpha_link_frames(6).T, 'length', 0.15, 'thick', .75, 'rviz')
-%         trplot(T_0a.T, 'color', 'k', 'frame', 'Joint A');
-%     trplot(T_0a.T, 'length', 100, 'thick', 1, 'rviz', 'frame', '0')%'color', 'm', 'frame', 'Link 0')
-    xlabel('X')
-    ylabel('Y')
-    grid on
 end
 
