@@ -1,5 +1,5 @@
 
-function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function basic_taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
     [a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
     

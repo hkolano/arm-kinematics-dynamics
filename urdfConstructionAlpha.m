@@ -1,6 +1,5 @@
 %{
 1/8/21: Checked alpha_joint_frames and alpha_link frames for correctness.
-All good. 
 %}
 
 function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha()
@@ -108,7 +107,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
         M_forward = [M_forward M_jminus1_j];
     end
 
-    % M_0_L1, M_L1_L2, M_L2_L3, M_L3_L4, M_L4_ee
+    % M_0_L1, M_L1_L2, M_L2_L3, M_L3_L4, M_L4_L5, M_L5_ee
     MlistForward = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T, M_forward(6).T);
     MlistBackward = cat(3, M_backward(1).T, M_backward(2).T, M_backward(3).T, M_backward(4).T, M_backward(5).T, M_backward(6).T);
     
@@ -119,6 +118,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     for i = 1:length(TW)
         Slist = [Slist TW(i).S];
     end
+    Slist;
     
     % Twists in link frames
     Alist = [];

@@ -1,12 +1,12 @@
 
-function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
     [a_joint_frames, a_link_frames, MlistForward, MlistBackward, Glist, Slist, Alist] = urdfConstructionAlpha();
     
     % Twist of base in world frame 
     V0 = [0; 0; 0; 0; 0; 0];
     % Acceleration of base in world frame (gravity)
-    V0_dot = [0; 0; 0; 0; 0; -9.81];
+    V0_dot = [0; 0; -9.81; 0; 0; 0];
     
     % LinkTwists{1} = base, LinkTwists{2} = link1, etc
     LinkTwists = {};
@@ -50,7 +50,7 @@ function taulist = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist,
         A_j = Alist(:, j);
         
         % Calculate wrench transmitted through joint i to link {i}
-        F_j = transpose(Ad(T_jplus1_j))*F_jplus1 + G_j*Vdot_j - transpose(ad(V_j))*G_j*V_j
+        F_j = transpose(Ad(T_jplus1_j))*F_jplus1 + G_j*Vdot_j - transpose(ad(V_j))*G_j*V_j;
         ForcesThrough{j} = F_j;
         
         % Find torque of actuator

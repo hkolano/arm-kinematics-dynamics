@@ -1,10 +1,8 @@
 %{
 Some shenanigans with dynamics on the Alpha arm.
-Last modified by Hannah Kolano 1/5/2021
+Last modified by Hannah Kolano 1/12/2021
 
 Definitely not getting appropriate tau values right now.
-Suspicion: links were labelled wrong. Confirm that M_i,j values are as
-described in MR. 
 
 Current assumptions:
 In air
@@ -33,19 +31,27 @@ curr_config = Qspace0;
 M_home = alphaArm.fkine(Qspace0);
 
 % Calculate twists
-[TW, T0] = alphaArm.twists(Qspace0);
+% [TW, T0] = alphaArm.twists(Qspace0);
 % Forward product of exponentials (home config)
-T_end = prod([TW.exp(Qspace1) T0]);
+% T_end = prod([TW.exp(Qspace1) T0]);
 
 %% ---------- Dynamics ----------
 g = [0; 0; -9.807]; % in m/s2
-thetalist = transpose(Qspace0(1:5));
+thetalist = Qspace0.';
 dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
-M = MassMatrix(thetalist, MlistForward, Glist, Slist)
-%MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
-% basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
+
+% MR Mass Matrix and inverse dynamics
+M_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
+% MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+
+% basicInverseDynamics output
+basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
+
+% Peter Corke mass matrix and inverse dynamics
+M_PC = alphaArm.inertia(thetalist.')
+tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
 
 %% ---------- Plotting ----------
 
