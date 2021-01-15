@@ -24,32 +24,22 @@ alphaArm = alphaSetup();
 % Example joint configurations
 Qspace0 = zeros(1, 5); % home
 Qspace1 = pi/180*[0 74.61 164.61 0 0];
-Qspace2 = pi/180*[20, 20, 45, 30, 0];
-curr_config = Qspace0;
+Qspace2old = pi/180*[16 27 -35 82 -13];
+Qspace2new = Qspace1 + Qspace2old;
 
 % homog T of end effector in the home configuration
-M_home = alphaArm.fkine(Qspace0);
+M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 
-% Calculate twists
-% [TW, T0] = alphaArm.twists(Qspace0);
-% Forward product of exponentials (home config)
-[TW, T0] = alphaArm.twists();
+% % Calculate twists
+% [TW, T0] = alphaArm.twists();
+% Slist = [];
+% for i = 1:length(TW)
+%     Slist = [Slist TW(i).S];
+% end
 % T_PK_twists = prod([TW.exp(Qspace1(2:5)) T0]);
-Slist = [];
-for i = 1:length(TW)
-    Slist = [Slist TW(i).S];
-end
-Slist
-% T = FKinSpace(M_home.T, Slist, Qspace1.');
-[T, all] = alphaArm.fkine(Qspace1)
+T_screws = FKinSpace(M_home, Slist, Qspace2old.')
+[T_links, all] = alphaArm.fkine(Qspace2new)
 
-
-%{
-T = TREXP(TW) as above, but the se(3) value is expressed as a twist vector TW
-(16).
-T = TREXP(TW, THETA) as above, but se(3) motion of TW*THETA, the rotation
-part of TW (16) must be unit norm.
-%}
 
 %% ---------- Dynamics ----------
 g = [0; 0; -9.807]; % in m/s2
@@ -73,7 +63,7 @@ Ftip = [0; 0; 0; 0; 0; 0];
 %% ---------- Plotting ----------
 
 % Show the arm graphically
-alphaArm.teach(Qspace1, 'jointdiam', 1.5, 'jvec', 'nobase');
+alphaArm.teach(Qspace2new, 'jointdiam', 1.5, 'jvec', 'nobase');
 hold on
 
 % plot the base in the correct orientation
@@ -83,9 +73,9 @@ surf(Z*.25, Y, X, 'FaceColor', 'k');
 % plot other coordinate frames
 % trplot(a_joint_frames(2).T, 'length', 0.2, 'thick', .75, 'rviz')
 % trplot(a_link_frames(7).T, 'length', 0.15, 'thick', .75, 'rviz')
-trplot(all(5), 'length', 0.2, 'thick', 1, 'rviz')
-% for i = 1:length(a_joint_frames)
-%     trplot(a_joint_frames(i).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
+trplot(T_screws, 'length', 0.2, 'thick', 1, 'rviz')
+% for i = 1:length(all)
+%     trplot(all(i).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
 % end
 
 %% ---------- Jacobians ----------
