@@ -58,7 +58,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     T_0a = SE3(T_0b.T*Joint_to_joint_transforms{5}.T);
 
     alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
-    
+      
 
     %% ---------- LINK FRAMES ----------
     R0 = rpy2r([0 0 0]);     
@@ -113,13 +113,12 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     
     %% ---------- TWISTS ----------
     % Twists in space frame
-    [TW, T0] = alphaArm.twists();
-    Slist = [];
-    for i = 1:length(TW)
-        Slist = [Slist TW(i).S];
-    end
-    Slist;
-    
+    %     [TW, T0] = alphaArm.twists();
+%     Slist = [];
+%     for i = 1:length(TW)
+%         Slist = [Slist TW(i).S];
+%     end
+
     % Twists in link frames
     Alist = [];
     for i = 1:5
