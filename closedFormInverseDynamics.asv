@@ -11,7 +11,7 @@ function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddth
     
     % Joint configuration 
     Qspace = [0; 0; 0; 0; 0];
-%     b_jacob = alphaArm.jacobe(Qspace);
+    b_jacob = alphaArm.jacobe(Qspace);
     
     % Construct matrix of A_i (twists in link frames) and G_i (spatial
     % inertia matrix)

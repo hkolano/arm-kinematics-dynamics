@@ -49,7 +49,7 @@ function alphaArm = alphaSetup()
     Link2.r = [73, 0, 0]/1000.0; % from joint D
     Link3.r = [17 -26 -2]/1000.0; % from joint C
     Link4.r = [0 3 -98]/1000.0; % from joint B
-    Link5.r = [25 0 0]/1000.0; % from joint A
+    Link5.r = [0 -25 0]/1000.0; % from joint A
 
     % Mass Moment of inertia (kg m^2)
 %     Link1.I = [99 139 115; 139 2920 3; 115 3 2934]/1000.0/1000.0;

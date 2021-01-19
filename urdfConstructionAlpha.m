@@ -12,6 +12,16 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     Link5 = alphaArm.links(5);
     in_meters = 1; % if == 1, outputs values in m, elsewise in mm
     
+    %% ---------- TWISTS ----------
+    Slist = [[0; 0; 1; 0; 0; 0], ...
+        [0; 1; 0; -.0462; 0; -0.02], ...
+        [0; -1; 0; .0462; 0; 0.1707], ...
+        [1; 0; 0; 0; 0.0262; 0], ...
+        [0; 0; -1; 0; -0.3507; 0]];
+    
+    Qspace1 = pi/180*[0 74.61 164.61 0 0];
+    [T_links, all] = alphaArm.fkine(Qspace1)
+    
     %% ---------- JOINT FRAMES ----------
     displacements = cell(5, 1);
     rotations = cell(5, 1);
@@ -84,11 +94,9 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     
     T_ee_from_L5 = SE3(R0, [jaw_disp, 0, 0]);
     T_0_ee = SE3(T_0_L5.T*T_ee_from_L5.T);
-
-    
     alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_L5, T_0_ee];
     
-    %% ---------- Relative link frames (M) ----------
+        %% ---------- Relative link frames (M) ----------
     num_link_frames = length(alpha_link_frames);
     inv_a_link_frames = [];
     M_backward = [];
@@ -111,20 +119,9 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
     MlistForward = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T, M_forward(6).T);
     MlistBackward = cat(3, M_backward(1).T, M_backward(2).T, M_backward(3).T, M_backward(4).T, M_backward(5).T, M_backward(6).T);
     
-    %% ---------- TWISTS ----------
-    % Twists in space frame
-    %     [TW, T0] = alphaArm.twists();
-%     Slist = [];
-%     for i = 1:length(TW)
-%         Slist = [Slist TW(i).S];
-%     end
-    Slist = [[0; 0; 1; 0; 0; 0], ...
-        [0; 1; 0; -.0462; 0; -0.02], ...
-        [0; -1; 0; .0462; 0; 0.1707], ...
-        [1; 0; 0; 0; 0.0262; 0], ...
-        [0; 0; -1; 0; -0.3507; 0]];
 
-    % Twists in link frames
+   
+    %% ---------- TWISTS IN LINK FRAMES ----------
     Alist = [];
     for i = 1:5
         S_i = Slist(:,i);
@@ -132,7 +129,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Gl
         Alist = [Alist A_i];
     end
      
-    
+ 
     %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
     
