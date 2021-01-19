@@ -27,8 +27,8 @@ function alphaArm = alphaSetup()
     % Set up robot with DH Parameters
     % in mm
     Link1 = Revolute('a',   .020,     'alpha', pi/2,  'd',    .0462,   'offset', pi,       'qlim', [-175*pi/180, 175*pi/180]);
-    Link2 = Revolute('a',   .15071, 'alpha', pi,    'd',    0,      'offset', -theta_a, 'qlim', [0, 200*pi/180]);
-    Link3 = Revolute('a',   .020,     'alpha', -pi/2, 'd',    0,      'offset', -theta_a, 'qlim', [0, 200*pi/180]);
+    Link2 = Revolute('a',   .15071, 'alpha', pi,    'd',    0,      'offset', 0, 'qlim', [0, 200*pi/180]);
+    Link3 = Revolute('a',   .020,     'alpha', -pi/2, 'd',    0,      'offset', pi/2, 'qlim', [0, 200*pi/180]);
     Link4 = Revolute('a',   0,      'alpha', pi/2,  'd',    -.180,   'offset', pi/2,     'qlim', [-175*pi/180, 175*pi/180]);
     Link5 = Revolute('a',   0,      'alpha', 0,     'd',    0,      'offset', -pi/2,    'qlim', [0, pi/2]);
 

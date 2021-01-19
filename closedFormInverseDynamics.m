@@ -10,7 +10,7 @@ function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddth
     alphaArm = alphaSetup();
     
     % Joint configuration 
-    Qspace = [0; 0; 0; 0; 0];
+    Qspace = thetalist;
 %     b_jacob = alphaArm.jacobe(Qspace);
     
     % Construct matrix of A_i (twists in link frames) and G_i (spatial
@@ -29,10 +29,11 @@ function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddth
         A_i = Alist(:, i);
         theta_i = Qspace(i);
         M_i_iminus1 = MlistBackward(:,:,i);
-        T_i_iminus1 = SE3(FKinSpace(M_i_iminus1, [-A_i], [theta_i]));
-        W_mat(i*6-5:i*6,(i-1)*6-5:(i-1)*6) = Ad(T_i_iminus1); 
+        T_i_iminus1 = FKinSpace(M_i_iminus1, [-A_i], [theta_i]);
+        W_mat(i*6-5:i*6,(i-1)*6-5:(i-1)*6) = Adjoint(T_i_iminus1); 
     end
     
+    W_mat;
     L_mat = inv(eye(30)-W_mat);
     
     MassMatrix = A_mat.'*L_mat.'*G_mat*L_mat*A_mat;

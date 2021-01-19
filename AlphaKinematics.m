@@ -8,7 +8,6 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Sl
     Link3 = alphaArm.links(3);
     Link4 = alphaArm.links(4);
     Link5 = alphaArm.links(5);
-    in_meters = 1; % if == 1, outputs values in m, elsewise in mm
     
 %% ---------- TWISTS ---------
     % Twists calculated by hand by Hannah 01/2021
@@ -21,7 +20,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Sl
 
 %% ---------- HOMOGENEOUS TRANSFORMS (JOINTS) ----------
     
-    QspaceStraight = pi/180*[0 74.61 164.61 0 0];
+    QspaceStraight =[0 0 0 0 0];
     [~, all] = alphaArm.fkine(QspaceStraight);
     
     Tnaught = SE3();
@@ -51,10 +50,7 @@ R0 = rpy2r([0 0 0]);
     T_link5_from_jointA = SE3(R0, Link5.r); % jaw1 x=-10, jaw2 x=-10; both y = -45
     T_0_L5 = SE3(T_0a.T*T_link5_from_jointA.T);
     
-    jaw_disp = 10; % 10mm away from COM of hand
-    if in_meters == 1
-        jaw_disp = jaw_disp/1000.0;
-    end
+    jaw_disp = 10/1000.0; % 10mm away from COM of hand
     
     T_ee_from_L5 = SE3(R0, [0, -jaw_disp, 0]);
     T_0_ee = SE3(T_0_L5.T*T_ee_from_L5.T);
@@ -65,6 +61,8 @@ R0 = rpy2r([0 0 0]);
     for i = 1:num_link_frames
         inv_a_link_frames = [inv_a_link_frames SE3(inv(alpha_link_frames(i).T))];
     end  
+    
+    % inv_a_link_frames = [Tnaught, T_L1_0, T_L2_0, T_L3_0, T_L4_0, T_L5_0, T_ee_0]
     
 %% ---------- RELATIVE LINK FRAMES (M) ----------
     M_backward = [];
@@ -86,12 +84,9 @@ R0 = rpy2r([0 0 0]);
     Alist = [];
     for i = 1:5
         S_i = Slist(:,i);
-        A_i = Ad(inv_a_link_frames(i+1))*S_i;
+        A_i = Adjoint(inv_a_link_frames(i+1).T)*S_i;
         Alist = [Alist A_i];
     end
-    
-    Alist
-     
  
     %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
