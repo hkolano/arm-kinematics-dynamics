@@ -35,21 +35,26 @@ T_screws = FKinSpace(M_home, Slist, Qspace0.');
 
 %% ---------- Dynamics ----------
 g = [0; 0; -9.807]; % in m/s2
-thetalist = Qspace0.';
+thetalist = [.1 .2 .3 .4 .5].';
 dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
-% % MR Mass Matrix and inverse dynamics
-MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
-MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+% MR Mass Matrix and inverse dynamics
+MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist);
+CMatrix_MR = VelQuadraticForces(thetalist, dthetalist, MlistForward, Glist, Slist)
+GMatrix_MR = GravityForces(thetalist, -g, MlistForward, Glist, Slist);
+JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
+Sum = MassMatrix_MR*ddthetalist + CMatrix_MR + GMatrix_MR + JTFtip;
+MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist);
 % 
 % % basicInverseDynamics output algorithm
-closedform_MassMatrix = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
+[myMassMatrix, myCoriolis, myGravMatrix] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+myCoriolis
 % 
 % % Peter Corke mass matrix and inverse dynamics
-MassMatrix_PC = alphaArm.inertia(Qspace0)
-tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
+% MassMatrix_PC = alphaArm.inertia(Qspace0)
+% tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
 
 
 %% ---------- Plotting ----------

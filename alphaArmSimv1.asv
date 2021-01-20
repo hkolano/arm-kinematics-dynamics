@@ -23,20 +23,13 @@ alphaArm = alphaSetup();
 
 % Example joint configurations
 Qspace0 = zeros(1, 5); % home
-Qspace1 = pi/180*[0 74.61 164.61 0 0];
+Qspace1 = pi/180*[0 0 0 0 0];
 Qspace2old = pi/180*[16 27 -35 82 -13];
 Qspace2new = Qspace1 + Qspace2old;
 
 % homog T of end effector in the home configuration
 M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 
-% % Calculate twists
-% [TW, T0] = alphaArm.twists();
-% Slist = [];
-% for i = 1:length(TW)
-%     Slist = [Slist TW(i).S];
-% end
-% T_PK_twists = prod([TW.exp(Qspace1(2:5)) T0]);
 T_screws = FKinSpace(M_home, Slist, Qspace0.');
 
 
@@ -47,22 +40,26 @@ dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
-% % MR Mass Matrix and inverse dynamics
-MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
-% MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+% MR Mass Matrix and inverse dynamics
+MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist);
+CMatrix_MR = VelQuadraticForces(thetalist, dthetalist, MlistForward, Glist, Slist);
+GMatrix_MR = GravityForces(thetalist, -g, MlistForward, Glist, Slist)
+JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
+Sum = MassMatrix_MR*ddthetalist + CMatrix_MR + GMatrix_MR + JTFtip;
+MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist);
 % 
 % % basicInverseDynamics output algorithm
-closedform_MassMatrix = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
-% basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip)
+[myMassMatrix, myCoriolis, myGravMatrix] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+myGravMatrix
 % 
 % % Peter Corke mass matrix and inverse dynamics
-MassMatrix_PC = alphaArm.inertia(thetalist.')
+% MassMatrix_PC = alphaArm.inertia(Qspace0)
 % tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
 
 
 %% ---------- Plotting ----------
 % Show the arm graphically
-alphaArm.teach(Qspace1, 'jointdiam', 1.5, 'jvec', 'nobase');
+alphaArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nobase');
 hold on
 
 % plot the base in the correct orientation
@@ -70,11 +67,11 @@ hold on
 surf(Z*.25, Y, X, 'FaceColor', 'k');
 
 % plot other coordinate frames
-trplot(TScrews, 'length', 0.2, 'thick', .2, 'rviz')
+% trplot(T_screws, 'length', 0.2, 'thick', .2, 'rviz')
 % trplot(a_link_frames(7).T, 'length', 0.15, 'thick', .75, 'rviz')
 % trplot(T_0_e, 'length', 0.2, 'thick', 1, 'rviz')
-% for i = 1:length(a_joint_frames)
-%     trplot(a_link_frames(7).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
+% for i = 1:length(a_link_frames)
+%     trplot(a_link_frames(i).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
 % end
 
 %% ---------- Jacobians ----------
