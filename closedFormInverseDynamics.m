@@ -7,7 +7,6 @@ Last modified by Hannah Kolano 1/12/2021
 function MassMatrix = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
     [~, ~, ~, MlistBackward, ~, Alist, Glist] = AlphaKinematics();
-    alphaArm = alphaSetup();
     
     % Joint configuration 
     Qspace = thetalist;

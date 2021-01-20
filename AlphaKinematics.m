@@ -80,7 +80,7 @@ R0 = rpy2r([0 0 0]);
     MlistForward = cat(3, M_forward(1).T, M_forward(2).T, M_forward(3).T, M_forward(4).T, M_forward(5).T, M_forward(6).T);
     MlistBackward = cat(3, M_backward(1).T, M_backward(2).T, M_backward(3).T, M_backward(4).T, M_backward(5).T, M_backward(6).T);
     
-%% ---------- TWISTS IN LINK FRAMES ----------
+%% ---------- TWISTS IN LINK FRAMES (Ai) ----------
     Alist = [];
     for i = 1:5
         S_i = Slist(:,i);

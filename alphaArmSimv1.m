@@ -42,15 +42,14 @@ Ftip = [0; 0; 0; 0; 0; 0];
 
 % % MR Mass Matrix and inverse dynamics
 MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist)
-% MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
+MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist)
 % 
 % % basicInverseDynamics output algorithm
 closedform_MassMatrix = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
-% basic_taulist = basicInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip)
 % 
 % % Peter Corke mass matrix and inverse dynamics
 MassMatrix_PC = alphaArm.inertia(Qspace0)
-% tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
+tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
 
 
 %% ---------- Plotting ----------
@@ -63,12 +62,12 @@ hold on
 surf(Z*.25, Y, X, 'FaceColor', 'k');
 
 % plot other coordinate frames
-trplot(T_screws, 'length', 0.2, 'thick', .2, 'rviz')
+% trplot(T_screws, 'length', 0.2, 'thick', .2, 'rviz')
 % trplot(a_link_frames(7).T, 'length', 0.15, 'thick', .75, 'rviz')
 % trplot(T_0_e, 'length', 0.2, 'thick', 1, 'rviz')
-for i = 1:length(a_link_frames)
-    trplot(a_link_frames(i).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
-end
+% for i = 1:length(a_link_frames)
+%     trplot(a_link_frames(i).T, 'length', .2, 'thick', 1, 'rviz', 'frame', '0');
+% end
 
 %% ---------- Jacobians ----------
 

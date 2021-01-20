@@ -14,7 +14,7 @@ function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddth
     DeltaLinkTwists = {};
     DeltaLinkTwists{1} = V0_dot;
     
-    T_frames_from_tip{6} = MlistBackward(:,:,6);
+    T_frames_from_tip{6} = SE3(MlistBackward(:,:,6));
     ForcesThrough{6} = Ftip;
     ActuatorTorques = [0; 0; 0; 0; 0];
     
@@ -29,15 +29,15 @@ function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddth
         
         % Relative frame configuration based on current angle
         % Product of exponentials
-        T_i_iminus1 = FKinSpace(M_i_iminus1, [-A_i], [theta_i]);
+        T_i_iminus1 = SE3(FKinSpace(M_i_iminus1, [-A_i], [theta_i]));
         T_frames_from_tip{i} = T_i_iminus1;
         
         % Calculate twist of link
-        V_i = Adjoint(T_i_iminus1)*LinkTwists{i} + A_i*dthetalist(i);
+        V_i = Ad(T_i_iminus1)*LinkTwists{i} + A_i*dthetalist(i);
         LinkTwists{i+1} = V_i;
         
         % Calculate acceleration (dtwist) of link
-        Vdot_i = Adjoint(T_i_iminus1)*DeltaLinkTwists{i} + ad(V_i)*A_i*dtheta_i + A_i*ddtheta_i;
+        Vdot_i = Ad(T_i_iminus1)*DeltaLinkTwists{i} + ad(V_i)*A_i*dtheta_i + A_i*ddtheta_i;
         DeltaLinkTwists{i+1} = Vdot_i;
     end
     
@@ -50,7 +50,7 @@ function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddth
         A_j = Alist(:, j);
         
         % Calculate wrench transmitted through joint i to link {i}
-        F_j = transpose(Adjoint(T_jplus1_j))*F_jplus1 + G_j*Vdot_j - transpose(ad(V_j))*G_j*V_j;
+        F_j = transpose(Ad(T_jplus1_j))*F_jplus1 + G_j*Vdot_j - transpose(ad(V_j))*G_j*V_j;
         ForcesThrough{j} = F_j;
         
         % Find torque of actuator
