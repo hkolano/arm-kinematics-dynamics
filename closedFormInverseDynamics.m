@@ -4,13 +4,14 @@ Last modified by Hannah Kolano 1/12/2021
 
 %}
 
-function [MassMatrix, Coriolis, GravityMatrix] = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function [MassMatrix, Coriolis, GravityMatrix, JTFtip] = closedFormInverseDynamics(thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
     [~, ~, ~, MlistBackward, ~, Alist, Glist] = AlphaKinematics();
     
     % Joint configuration 
     Qspace = thetalist;
-%     b_jacob = alphaArm.jacobe(Qspace);
+    b_jacob = alphaArm.jacobe(Qspace);
+    JTFtip = b_jacob.'*Ftip;
     
 %% Construct matrix of A_i, G_i
     % Twists in link frames
@@ -33,9 +34,9 @@ function [MassMatrix, Coriolis, GravityMatrix] = closedFormInverseDynamics(dof, 
     
 %% Start list of V (twists of links)
     % Twist of base frame {0} in {0} frame
-    V_list = zeros(6,6);
+    V_list = zeros(6,5);
     % Twist of link frame (1}
-    V_list(:,2) = Adjoint(T_1_0)*V_list(:,1) + Alist(:,1)*dthetalist(1);
+    V_list(:,1) = Adjoint(T_1_0)*[0 0 0 0 0 0].' + Alist(:,1)*dthetalist(1);
     
 %% Calculate W and L Matrices; fill out V_mat
     W_mat = zeros(30,30);
@@ -48,7 +49,7 @@ function [MassMatrix, Coriolis, GravityMatrix] = closedFormInverseDynamics(dof, 
         T_i_iminus1 = FKinSpace(M_i_iminus1, [-A_i], [theta_i]);
         
         % Fill out V_list
-        V_list(:,i+1) = Adjoint(T_i_iminus1)*V_list(:,i)+A_i*dtheta_i;
+        V_list(:,i) = Adjoint(T_i_iminus1)*V_list(:,i-1)+A_i*dtheta_i;
         % Fill out W_mat
         W_mat(i*6-5:i*6,(i-1)*6-5:(i-1)*6) = Adjoint(T_i_iminus1); 
     end
@@ -63,8 +64,11 @@ function [MassMatrix, Coriolis, GravityMatrix] = closedFormInverseDynamics(dof, 
         ad_A_dtheta_mat(i*6-5:i*6, i*6-5:i*6) = ad(Alist(:,i)*dthetalist(i));
     end
     
+    adV_mat;
+    ad_A_dtheta_mat;
     
-%% Closed Form Dynamics
+    
+%% Closed Form Dynamics;
     MassMatrix = A_mat.'*L_mat.'*G_mat*L_mat*A_mat;
     Coriolis = -A_mat.'*L_mat.'*(G_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_mat)*L_mat*A_mat*dthetalist;
     GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat;

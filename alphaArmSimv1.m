@@ -36,7 +36,7 @@ T_screws = FKinSpace(M_home, Slist, Qspace0.');
 %% ---------- Dynamics ----------
 g = [0; 0; -9.807]; % in m/s2
 thetalist = [.1 .2 .3 .4 .5].';
-dthetalist = [0; 0; 0; 0; 0];
+dthetalist = [.1; .2; .3; .4; .5];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
@@ -46,20 +46,17 @@ CMatrix_MR = VelQuadraticForces(thetalist, dthetalist, MlistForward, Glist, Slis
 GMatrix_MR = GravityForces(thetalist, -g, MlistForward, Glist, Slist);
 JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
 Sum = MassMatrix_MR*ddthetalist + CMatrix_MR + GMatrix_MR + JTFtip;
-MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, g, Ftip, MlistForward, Glist, Slist);
+MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, -g, Ftip, MlistForward, Glist, Slist)
 % 
-% % basicInverseDynamics output algorithm
-[myMassMatrix, myCoriolis, myGravMatrix] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+% closedFormDynamics output 
+[myMassMatrix, myCoriolis, myGravMatrix, myJTFtip] = closedFormInverseDynamics(thetalist, dthetalist, ddthetalist, Ftip, g);
 myCoriolis
-% 
-% % Peter Corke mass matrix and inverse dynamics
-% MassMatrix_PC = alphaArm.inertia(Qspace0)
-% tau_PC = alphaArm.rne(thetalist.', dthetalist.', ddthetalist.')
+myMassMatrix*ddthetalist + myCoriolis + myGravMatrix;
 
 
 %% ---------- Plotting ----------
 % Show the arm graphically
-alphaArm.teach(Qspace0, 'jointdiam', 1.5, 'jvec', 'nobase');
+alphaArm.teach(thetalist.', 'jointdiam', 1.5, 'jvec', 'nobase');
 hold on
 
 % plot the base in the correct orientation
