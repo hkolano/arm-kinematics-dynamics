@@ -6,12 +6,15 @@ Last modified by Hannah Kolano 1/12/2021
 
 function [MassMatrix, Coriolis, GravityMatrix, JTFtip] = closedFormInverseDynamics(thetalist, dthetalist, ddthetalist, Ftip, g)
     % Get kinematic and dynamic values
-    [~, ~, ~, MlistBackward, ~, Alist, Glist] = AlphaKinematics();
+    [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist] = AlphaKinematics();
+    M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
     
     % Joint configuration 
     Qspace = thetalist;
-    b_jacob = alphaArm.jacobe(Qspace);
-    JTFtip = b_jacob.'*Ftip;
+    J_s = JacobianSpace(Slist, thetalist);
+    T_end = FKinSpace(M_home, Slist, thetalist)*MlistForward(6);
+    J_b = Adjoint(TransInv(T_end))*J_s;
+    JTFtip = J_b.'*Ftip;
     
 %% Construct matrix of A_i, G_i
     % Twists in link frames

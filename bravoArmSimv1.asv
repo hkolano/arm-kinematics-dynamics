@@ -8,7 +8,7 @@ bravoArm = bravoSetup();
 
 %% Home position
 Qspace0 = zeros(1, 7);
-Qspace1 = pi/180*[70 60 50 40 30 20 10]
+Qspace1 = pi/180*[0 90 0 0 0 0 0];
 M_home = bravoArm.fkine(Qspace0);
 T_end = FKinSpace(M_home.T, Slist, Qspace1.')
 
