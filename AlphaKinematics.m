@@ -29,6 +29,7 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Sl
     T_0c = SE3(all(2));
     T_0b = SE3(all(3));
     T_0a = SE3(all(4));
+    T_0ee = SE3(all(5));
     
     alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
     
@@ -50,11 +51,11 @@ R0 = rpy2r([0 0 0]);
     T_link5_from_jointA = SE3(R0, Link5.r); % jaw1 x=-10, jaw2 x=-10; both y = -45
     T_0_L5 = SE3(T_0a.T*T_link5_from_jointA.T);
     
-    jaw_disp = 10/1000.0; % 10mm away from COM of hand
-    
-    T_ee_from_L5 = SE3(R0, [0, -jaw_disp, 0]);
-    T_0_ee = SE3(T_0_L5.T*T_ee_from_L5.T);
-    alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_L5, T_0_ee];
+%     jaw_disp = 10/1000.0; % 10mm away from COM of hand
+%     
+%     T_ee_from_L5 = SE3(R0, [0, -jaw_disp, 0]);
+%     T_0_ee = SE3(T_0_L5.T*T_ee_from_L5.T);
+    alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_L5, T_0ee];
    
     num_link_frames = length(alpha_link_frames);
     inv_a_link_frames = [];
@@ -88,7 +89,7 @@ R0 = rpy2r([0 0 0]);
         Alist = [Alist A_i];
     end
  
-    %% ---------- Spatial Inertia Matrices Gi ----------
+%% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
     
     for i = 1:5

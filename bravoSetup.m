@@ -1,8 +1,8 @@
 function bravoArm = bravoSetup()
 %BRAVOSETUP Summary of this function goes here
 %{
-Set up the kinematic and dynamic properties of the Alpha arm. 
-Last modified by Hannah Kolano 1/28/2021
+Set up the kinematic and dynamic properties of the Bravo arm. 
+Last modified by Hannah Kolano 1/29/2021
 
 Current assumptions:
 In air
