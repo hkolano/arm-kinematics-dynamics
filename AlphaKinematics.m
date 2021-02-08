@@ -1,5 +1,5 @@
 
-function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Slist, Alist, Glist] = AlphaKinematics()
+function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Slist, Alist, Glist, GpAlist] = AlphaKinematics()
 
 %% ---------- SETUP ----------
     alphaArm = alphaSetup();
@@ -38,6 +38,8 @@ function [alpha_joint_frames, alpha_link_frames, MlistForward, MlistBackward, Sl
 R0 = rpy2r([0 0 0]);     
     T_link1_from_jointE = SE3(R0, Link1.r);
     T_0_L1 = SE3(T_0e.T*T_link1_from_jointE.T);
+    
+    T_
     
     T_link2_from_jointD = SE3(R0, Link2.r);
     T_0_L2 = SE3(T_0d.T*T_link2_from_jointD.T);
@@ -91,13 +93,45 @@ R0 = rpy2r([0 0 0]);
  
 %% ---------- Spatial Inertia Matrices Gi ----------
     Gi_matrices = {};
+    Gi_matrices_plus = {};
+    
+%    % Added Mass terms
+%    % Volume for Added Mass of Link 2 (and Link 4)
+%    V_al2 = pi*.02^2*.15;
+%    V_al4 = pi*.02^2*.22;
+%    
+%    m_al2 = V_al2*1002.7; %density of fresh water
+%    m_al4 = V_al4*1002.7;
+%    added_masses = [0 m_al2 0 m_al4 0];
+%    
+%    % Added inertias
+%    AL2_Ixx = 1/2*m_al2*0.02^2;
+%    AL4_Ixx = 1/2*m_al4*0.02^2;
+%    AL2_I = 1/12*m_al2*0.02^2;
+%    AL4_I = 1/12*m_al4*0.02^2;
+%    added_inertias = [0 0 0; ...
+%        AL2_Ixx AL2_I AL2_I; ...
+%        0 0 0; 
+%        AL4_Ixx AL4_I AL4_I; 
+%        0 0 0];
     
     for i = 1:5
         link = alphaArm.links(i);
+        m = link.m;
         G_i = [link.I(1,:) 0 0 0; link.I(2,:) 0 0 0; link.I(3,:) 0 0 0; ...
-            0 0 0 link.m 0 0; 0 0 0 0 link.m 0; 0 0 0 0 0 link.m;];
+            0 0 0 m 0 0; 0 0 0 0 m 0; 0 0 0 0 0 m;];
         Gi_matrices{i} = G_i;
+        
+%         G_i_added_mass = [added_inertias(i,1) 0 0 0 0 0; 0 added_inertias(i,2) 0 0 0 0; 0 0 added_inertias(i,3) 0 0 0; ...
+%             0 0 0 added_masses(i) 0 0; 0 0 0 0 added_masses(i) 0; 0 0 0 0 0 added_masses(i)];
+%         Gi_matrices_plus{i} = G_i + G_i_added_mass;
     end
     
+    AM1 = diag([7*10^-6     7*10^-6     0           .032    .032    .017]);
+    AM2 = diag([0           1716*10^-6  1716*10^-6  .017    .201    .201]);
+    AM3 = diag([7*10^-6     0           7*10^-6     .032    .017    .032]);
+    AM4 = diag([2443*10^-6  2443*10^-6  0           .226    .226    .017]);
+    
     Glist = cat(3, Gi_matrices{1}, Gi_matrices{2}, Gi_matrices{3}, Gi_matrices{4}, Gi_matrices{5});
+    GpAlist = cat(3,Gi_matrices{1}+AM1, Gi_matrices{2}+AM2, Gi_matrices{3}+AM3, Gi_matrices{4}+AM4, Gi_matrices{5});
 end

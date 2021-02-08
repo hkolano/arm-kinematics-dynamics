@@ -1,6 +1,8 @@
 %{
 Attempting closed form dynamics with the Alpha arm. 
-Last modified by Hannah Kolano 1/12/2021
+Last modified by Hannah Kolano 2/5/2021
+
+Not sure added mass inertia terms are right
 
 %}
 
@@ -8,7 +10,7 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     
 %% Get kinematic and dynamic values of  arm
     if dof == 5
-        [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist] = AlphaKinematics();
+        [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist, GpAlist] = AlphaKinematics();
         M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
     elseif dof == 7
         [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist] = bravoKinematics();
@@ -31,9 +33,11 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     A_mat = zeros(nx6, n);
     % Spatial inertia matrix
     G_mat = zeros(nx6, nx6);
+    G_plus_mat = zeros(nx6, nx6);
     for i = 1:n
         A_mat((i*6)-5:i*6, i) = Alist(:, i);
-        G_mat((i*6)-5:i*6, (i*6)-5:i*6) = Glist(:,:,i);          
+        G_mat((i*6)-5:i*6, (i*6)-5:i*6) = Glist(:,:,i);
+        G_plus_mat((i*6)-5:i*6, (i*6)-5:i*6) = GpAlist(:,:,i);
     end    
     
 %% Calculate VdotBase_mat 
@@ -83,9 +87,12 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     
 %% Closed Form Dynamics;
     MassMatrix = A_mat.'*L_mat.'*G_mat*L_mat*A_mat;
+    MM_plus_AM = A_mat.'*L_mat.'*G_plus_mat*L_mat*A_mat;
     Coriolis = -A_mat.'*L_mat.'*(G_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_mat)*L_mat*A_mat*dthetalist;
+    Cor_plus_AM = -A_mat.'*L_mat.'*(G_plus_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_plus_mat)*L_mat*A_mat*dthetalist;
     GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat;
     
-    taulist = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip;
+    taulist = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip
+    taulist_plus = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + JTFtip
 
 end

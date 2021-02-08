@@ -1,8 +1,6 @@
 %{
 Some shenanigans with dynamics on the Alpha arm.
-Last modified by Hannah Kolano 1/12/2021
-
-Definitely not getting appropriate tau values right now.
+Last modified by Hannah Kolano 2/5/2021
 
 Current assumptions:
 In air
@@ -16,7 +14,7 @@ addpath('C:\Users\hkolano\Documents\GitHub\ModernRobotics\packages\MATLAB\mr')
 
 %% Import the arm setup
 alphaArm = alphaSetup();
-[a_joint_frames, a_link_frames, MlistForward, MlistBackward, Slist, Alist, Glist] = AlphaKinematics();
+[a_joint_frames, a_link_frames, MlistForward, MlistBackward, Slist, Alist, Glist, GaPlist] = AlphaKinematics();
 % alpha_joint_frames = [Tnaught, T_0e, T_0d, T_0c, T_0b, T_0a];
 % alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
 % M(i) = M_(i-1)_i  where i = link frame # // M(1) = M_0_1, M(2) = M_1_2
@@ -35,8 +33,8 @@ M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 g = [0; 0; 9.807]; % in m/s2
 thetalist = [0 -.8 -1.3 0 0].';
 dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [1; 0; 0; 0; 0];
-Ftip = [0; 0; 0; 0; 1; 0];
+ddthetalist = [2; 5; 0; 0; 0];
+Ftip = [0; 0; 0; 0; 0; 0];
 
 T_screws = FKinSpace(M_home, Slist, thetalist);
 
@@ -48,7 +46,7 @@ JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
 MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, -g, Ftip, MlistForward, Glist, Slist);
 % 
 % closedFormDynamics output 
-taulist = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
+taulist = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
 
 
 %% ---------- Plotting ----------
