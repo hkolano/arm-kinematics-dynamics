@@ -47,12 +47,14 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     M_1_0 = MlistBackward(:,:,1);
     T_1_0 = FKinSpace(M_1_0, [-Alist(:,1)], [thetalist(1)]);
     VdotBase_mat = zeros(nx6, 1);
+    VdotBase_matBuoy = zeros(nx6, 1);
     VdotBase_mat(1:6) = [Adjoint(T_1_0)*Vdot0];
+    VdotBase_matBuoy(1:6) = [Adjoint(T_1_0)*-Vdot0];
     
 %% Start list of V (twists of links)
     % Twist of base frame {0} in {0} frame
     V_list = zeros(6,n);
-    % Twist of link frame (1}
+    % Twist of link frame {1}
     V_list(:,1) = Adjoint(T_1_0)*[0 0 0 0 0 0].' + Alist(:,1)*dthetalist(1);
     
 %% Calculate W and L Matrices; fill out V_mat
@@ -90,8 +92,9 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     MM_plus_AM = A_mat.'*L_mat.'*G_plus_mat*L_mat*A_mat;
     Coriolis = -A_mat.'*L_mat.'*(G_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_mat)*L_mat*A_mat*dthetalist;
     Cor_plus_AM = -A_mat.'*L_mat.'*(G_plus_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_plus_mat)*L_mat*A_mat*dthetalist;
-    GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat;
-    
+    GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat
+    AntiGravityMatrix = A_mat.'*L_mat.'*(G_plus_mat-G_mat)*L_mat*VdotBase_matBuoy
+        
     taulist = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip
     taulist_plus = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + JTFtip
 
