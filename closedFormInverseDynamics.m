@@ -92,10 +92,10 @@ function taulist = closedFormInverseDynamics(dof, thetalist, dthetalist, ddtheta
     MM_plus_AM = A_mat.'*L_mat.'*G_plus_mat*L_mat*A_mat;
     Coriolis = -A_mat.'*L_mat.'*(G_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_mat)*L_mat*A_mat*dthetalist;
     Cor_plus_AM = -A_mat.'*L_mat.'*(G_plus_mat*L_mat*ad_A_dtheta_mat*W_mat + adV_mat.'*G_plus_mat)*L_mat*A_mat*dthetalist;
-    GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat
-    AntiGravityMatrix = A_mat.'*L_mat.'*(G_plus_mat-G_mat)*L_mat*VdotBase_matBuoy
+    GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat;
+    AntiGravityMatrix = A_mat.'*L_mat.'*(G_plus_mat-G_mat)*L_mat*VdotBase_matBuoy;
         
     taulist = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip
-    taulist_plus = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + JTFtip
+    taulist_plus = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip
 
 end
