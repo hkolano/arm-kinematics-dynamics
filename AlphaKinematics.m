@@ -39,8 +39,6 @@ R0 = rpy2r([0 0 0]);
     T_link1_from_jointE = SE3(R0, Link1.r);
     T_0_L1 = SE3(T_0e.T*T_link1_from_jointE.T);
     
-    T_
-    
     T_link2_from_jointD = SE3(R0, Link2.r);
     T_0_L2 = SE3(T_0d.T*T_link2_from_jointD.T);
     

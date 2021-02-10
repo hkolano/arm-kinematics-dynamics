@@ -31,22 +31,22 @@ M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 
 %% ---------- Dynamics ----------
 g = [0; 0; 9.807]; % in m/s2
-thetalist = [0 -.8 -1.3 0 0].';
+thetalist = [0 0 0 0 0].';
 dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [2; 5; 0; 0; 0];
+ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
 T_screws = FKinSpace(M_home, Slist, thetalist);
 
 % MR Mass Matrix and inverse dynamics
-MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist);
-CMatrix_MR = VelQuadraticForces(thetalist, dthetalist, MlistForward, Glist, Slist);
-GMatrix_MR = GravityForces(thetalist, -g, MlistForward, Glist, Slist);
-JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
-MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, -g, Ftip, MlistForward, Glist, Slist);
+% MassMatrix_MR = MassMatrix(thetalist, MlistForward, Glist, Slist);
+% CMatrix_MR = VelQuadraticForces(thetalist, dthetalist, MlistForward, Glist, Slist);
+% GMatrix_MR = GravityForces(thetalist, -g, MlistForward, Glist, Slist);
+% JTFtip = EndEffectorForces(thetalist, Ftip, MlistForward, Glist, Slist);
+% MRtaulist = InverseDynamics(thetalist, dthetalist, ddthetalist, -g, Ftip, MlistForward, Glist, Slist);
 % 
 % closedFormDynamics output 
-taulist = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+% taulist = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
 
 
 %% ---------- Plotting ----------
