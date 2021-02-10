@@ -6,7 +6,7 @@ Not sure added mass inertia terms are right
 
 %}
 
-function [MM, RHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
+function [MM, LHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
     
 %% Get kinematic and dynamic values of  arm
     if dof == 5
@@ -95,13 +95,11 @@ function [MM, RHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetali
     GravityMatrix = A_mat.'*L_mat.'*G_mat*L_mat*VdotBase_mat;
     AntiGravityMatrix = A_mat.'*L_mat.'*(G_plus_mat-G_mat)*L_mat*VdotBase_matBuoy;
     
-    taulist_air = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip;
-    taulist_water = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
+    taulist_air = MassMatrix*ddthetalist + Coriolis + GravityMatrix + JTFtip
+    taulist_water = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip
     
-%     Outputs:
-    MM = MM_plus_AM;
-    RHS = Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
-    taulist = taulist_water;
+    Outputs:
+    MM = MM_plus_AM
 
 
 end

@@ -23,7 +23,7 @@ function alphaArm = alphaSetup()
     Link1 = Revolute('a',   .020,       'alpha', pi/2,  'd',    .0462,   'offset', pi,      'qlim', [-175*pi/180, 175*pi/180]);
     Link2 = Revolute('a',   .15071,     'alpha', pi,    'd',    0,       'offset', 0,       'qlim', [-theta_a, 200*pi/180-theta_a]);
     Link3 = Revolute('a',   .020,       'alpha', -pi/2, 'd',    0,       'offset', pi/2,    'qlim', [-theta_a-pi/2, 200*pi/180-theta_a-pi/2]);
-    Link4 = Revolute('a',   0,          'alpha', pi/2,  'd',    -.180,   'offset', pi/2,    'qlim', [-175*pi/180, 175*pi/180]);
+    Link4 = Revolute('a',   0,          'alpha', pi/2,  'd',    -.180,   'offset', pi/2,    'qlim', [-165*pi/180, 165*pi/180]);
     Link5 = Revolute('a',   0,          'alpha', 0,     'd',    0,       'offset', -pi/2,   'qlim', [0, pi/2]);
 
     %% Dynamics
