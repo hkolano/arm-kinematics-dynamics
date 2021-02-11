@@ -33,7 +33,7 @@ M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 g = [0; 0; 9.807]; % in m/s2
 thetalist = [0 0 0 0 0].';
 dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [.5; 1; -2; -1; 0];
+ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
 T_screws = FKinSpace(M_home, Slist, thetalist);
@@ -41,19 +41,29 @@ T_screws = FKinSpace(M_home, Slist, thetalist);
 positions = thetalist;
 velocities = dthetalist;
 accelerations = ddthetalist;
+torques = [0; 0; 0; 0; 0]
 
 curr_theta = thetalist; curr_dtheta = dthetalist; curr_ddtheta = ddthetalist;
 
+theta_start = curr_theta;
+theta_end = [45 -70 -100 10 0].'*pi/180;
+
+
+iterations = 50;
+dt = 0.05;
+T = dt*iterations;
 % closedFormDynamics output 
-for i = 1:30
-    dt = 0.05;
+for i = 1:iterations
+    curr_ddtheta = (6/T^2 - 12*i*dt/T^3)*(theta_end-theta_start);
     [theta_new, dtheta_new, ddtheta_new, taulist] = step_dynamics_forward(curr_theta, curr_dtheta, curr_ddtheta, Ftip, g, dt);
-    curr_theta = theta_new; curr_dtheta = dtheta_new; curr_ddtheta = ddtheta_new;
+    curr_theta = theta_new; curr_dtheta = dtheta_new; %curr_ddtheta = ddtheta_new;'
+    taulist
+    torques = [torques taulist];
     positions = [positions curr_theta];
+    velocities = [velocities curr_dtheta];
+    accelerations = [accelerations curr_ddtheta];
 end
 
-positions
-curr_theta
 
 %% ---------- Plotting ----------
 % Show the arm graphically
@@ -63,6 +73,46 @@ hold on
 % plot the base in the correct orientation
 [X, Y, Z] = cylinder(.020);
 surf(Z*.25, Y, X, 'FaceColor', 'k');
+
+figure 
+plot(0:dt:dt*iterations, positions(1,:))
+hold on
+plot(0:dt:dt*iterations, positions(2,:))
+plot(0:dt:dt*iterations, positions(3,:))
+plot(0:dt:dt*iterations, positions(4,:))
+xlabel('Time (s)')
+ylabel('Joint Angle (theta)') 
+legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+
+figure 
+plot(0:dt:dt*iterations, velocities(1,:))
+hold on
+plot(0:dt:dt*iterations, velocities(2,:))
+plot(0:dt:dt*iterations, velocities(3,:))
+plot(0:dt:dt*iterations, velocities(4,:))
+xlabel('Time (s)')
+ylabel('Joint Velocities (d_theta)') 
+legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+
+figure 
+plot(0:dt:dt*iterations, accelerations(1,:))
+hold on
+plot(0:dt:dt*iterations, accelerations(2,:))
+plot(0:dt:dt*iterations, accelerations(3,:))
+plot(0:dt:dt*iterations, accelerations(4,:))
+xlabel('Time (s)')
+ylabel('Joint Accelerations (d_d_theta)') 
+legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+
+figure 
+plot(0:dt:dt*iterations, torques(1,:))
+hold on
+plot(0:dt:dt*iterations, torques(2,:))
+plot(0:dt:dt*iterations, torques(3,:))
+plot(0:dt:dt*iterations, torques(4,:))
+xlabel('Time (s)')
+ylabel('Torque (Nm)') 
+legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
 
 % plot other coordinate frames
 % trplot(T_screws, 'length', 0.2, 'thick', .2, 'rviz')
