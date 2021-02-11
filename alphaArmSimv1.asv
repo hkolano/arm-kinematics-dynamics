@@ -33,7 +33,7 @@ M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
 g = [0; 0; 9.807]; % in m/s2
 thetalist = [0 0 0 0 0].';
 dthetalist = [0; 0; 0; 0; 0];
-ddthetalist = [.5; 1; -2; -1; 0];
+ddthetalist = [0; 1; 2; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
 T_screws = FKinSpace(M_home, Slist, thetalist);
@@ -45,7 +45,7 @@ accelerations = ddthetalist;
 curr_theta = thetalist; curr_dtheta = dthetalist; curr_ddtheta = ddthetalist;
 
 % closedFormDynamics output 
-for i = 1:30
+for i = 1:20
     dt = 0.05;
     [theta_new, dtheta_new, ddtheta_new, taulist] = step_dynamics_forward(curr_theta, curr_dtheta, curr_ddtheta, Ftip, g, dt);
     curr_theta = theta_new; curr_dtheta = dtheta_new; curr_ddtheta = ddtheta_new;
@@ -79,6 +79,7 @@ dqdt = dthetalist;
 dqdot_dt = MassM\(taulist - RHS);
 
 theta_new = thetalist + dqdt*dt;
+dist_from_limit = 
 dtheta_new = dthetalist + dqdot_dt*dt;
 ddtheta_new = dqdot_dt;
 
