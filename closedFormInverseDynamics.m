@@ -1,9 +1,6 @@
 %{
 Attempting closed form dynamics with the Alpha arm. 
-Last modified by Hannah Kolano 2/5/2021
-
-Not sure added mass inertia terms are right
-
+Last modified by Hannah Kolano 2/16/2021
 %}
 
 function [MM, RHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip, g)
@@ -99,9 +96,13 @@ function [MM, RHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetali
     taulist_water = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
     
 %     Outputs:
-    MM = MM_plus_AM;
-    RHS = Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
-    taulist = taulist_water;
+%     MM = MM_plus_AM;
+%     RHS = Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
+%     taulist = taulist_water;
+    MM = MassMatrix;
+    RHS = Coriolis + GravityMatrix + JTFtip;
+    taulist = taulist_air;
+    
 
 
 end

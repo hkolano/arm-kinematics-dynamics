@@ -1,16 +1,15 @@
 %{
 Some shenanigans with dynamics on the Alpha arm.
-Last modified by Hannah Kolano 2/5/2021
+Last modified by Hannah Kolano 2/19/2021
 
 Current assumptions:
-In air
 Motors are frictionless
-No added mass due to being in water
 No drag
 %}
 
 % clf;
 addpath('C:\Users\hkolano\Documents\GitHub\ModernRobotics\packages\MATLAB\mr')
+close all
 
 %% Import the arm setup
 alphaArm = alphaSetup();
@@ -36,28 +35,32 @@ dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
 
-T_screws = FKinSpace(M_home, Slist, thetalist);
+% T_screws = FKinSpace(M_home, Slist, thetalist);
 
 positions = thetalist;
 velocities = dthetalist;
 accelerations = ddthetalist;
-torques = [0; 0; 0; 0; 0]
+% torques = [0; 0; 0; 0; 0];
 
 curr_theta = thetalist; curr_dtheta = dthetalist; curr_ddtheta = ddthetalist;
-
+[MassM, RHS, taulist] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+torques = taulist;
 theta_start = curr_theta;
-theta_end = [45 -70 -100 10 0].'*pi/180;
-
+dtheta_start = curr_dtheta;
+theta_end = [-45 -70 -100 10 0].'*pi/180;
+dtheta_end = [5 -10 -15 -20 0].'*pi/180;
 
 iterations = 50;
 dt = 0.05;
 T = dt*iterations;
-% closedFormDynamics output 
+th1mth2 = theta_start - theta_end;
 for i = 1:iterations
-    curr_ddtheta = (6/T^2 - 12*i*dt/T^3)*(theta_end-theta_start);
+    t = dt*i;
+    curr_ddtheta = 6*-2*(5*th1mth2+3*T*dtheta_start+2*T*dtheta_end)*t/T^3 + ...
+        12*(15*th1mth2+8*T*dtheta_start + 7*T*dtheta_end)*t^2/T^4 + ...
+        20*-3*(2*th1mth2+ T*dtheta_start + T*dtheta_end)*t^3/T^5;
     [theta_new, dtheta_new, ddtheta_new, taulist] = step_dynamics_forward(curr_theta, curr_dtheta, curr_ddtheta, Ftip, g, dt);
     curr_theta = theta_new; curr_dtheta = dtheta_new; %curr_ddtheta = ddtheta_new;'
-    taulist
     torques = [torques taulist];
     positions = [positions curr_theta];
     velocities = [velocities curr_dtheta];
