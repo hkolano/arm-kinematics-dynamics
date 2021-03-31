@@ -18,19 +18,20 @@ alphaArm = alphaSetup();
 % alpha_link_frames = [Tnaught, T_0_L1, T_0_L2, T_0_L3, T_0_L4, T_0_ee];
 % M(i) = M_(i-1)_i  where i = link frame # // M(1) = M_0_1, M(2) = M_1_2
 
-% Example joint configurations
-Qspace0 = zeros(1, 5); % home
-Qspace1 = pi/180*[0 0 0 0 0];
-Qspace2old = pi/180*[16 27 -35 82 -13];
-Qspace2new = Qspace1 + Qspace2old;
-
 % homog T of end effector in the home configuration
 M_home = [-1 0 0 -.3507; 0 1 0 0; 0 0 -1 0.0262; 0 0 0 1];
+
+%  theta_limits = [-175, 175; ...
+%         -74.61, 125.89; ...
+%         -164.61, 35.39; ...
+%         -165, 165; ...
+%         -180, 180]*pi/180;
 
 
 %% ---------- Dynamics ----------
 g = [0; 0; 9.807]; % in m/s2
-thetalist = [0 0 0 0 0].';
+% thetalist = [0 0 0 0 0].';
+thetalist = [0 0 0 0 0].'*pi/180;
 dthetalist = [0; 0; 0; 0; 0];
 ddthetalist = [0; 0; 0; 0; 0];
 Ftip = [0; 0; 0; 0; 0; 0];
@@ -47,11 +48,12 @@ curr_theta = thetalist; curr_dtheta = dthetalist; curr_ddtheta = ddthetalist;
 torques = taulist;
 theta_start = curr_theta;
 dtheta_start = curr_dtheta;
-theta_end = [-45 -70 -100 10 0].'*pi/180;
-dtheta_end = [5 -10 -15 -20 0].'*pi/180;
+% theta_end = [-84 24 -96 120 0].'*pi/180;
+theta_end = [0 0 0 0 0].';
+dtheta_end = [0 0 0 0 0].'*pi/180;
 
 iterations = 50;
-dt = 0.05;
+dt = 0.1;
 T = dt*iterations;
 th1mth2 = theta_start - theta_end;
 for i = 1:iterations
@@ -70,12 +72,16 @@ end
 
 %% ---------- Plotting ----------
 % Show the arm graphically
-alphaArm.plot(positions.', 'jointdiam', 1.5, 'jvec', 'nobase');
-hold on
+alphaArm.plot(positions.', 'jointdiam', 1.5, 'nojvec', 'nobase', 'trail', {'r', 'LineWidth', 2}, 'noshadow');
+title('Alpha Arm over Sample Trajectory')
+xlabel('X (m)')
+ylabel('Y (m)')
+zlabel('Z (m)')
+% hold on
 
 % plot the base in the correct orientation
-[X, Y, Z] = cylinder(.020);
-surf(Z*.25, Y, X, 'FaceColor', 'k');
+% [X, Y, Z] = cylinder(.020);
+% surf(Z*.25, Y, X, 'FaceColor', 'k');
 
 figure 
 plot(0:dt:dt*iterations, positions(1,:))
@@ -86,6 +92,7 @@ plot(0:dt:dt*iterations, positions(4,:))
 xlabel('Time (s)')
 ylabel('Joint Angle (theta)') 
 legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+title('Joint Angles over Trajectory')
 
 figure 
 plot(0:dt:dt*iterations, velocities(1,:))
@@ -96,16 +103,18 @@ plot(0:dt:dt*iterations, velocities(4,:))
 xlabel('Time (s)')
 ylabel('Joint Velocities (d_theta)') 
 legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+title('Joint Velocities over Trajectory')
 
-figure 
-plot(0:dt:dt*iterations, accelerations(1,:))
-hold on
-plot(0:dt:dt*iterations, accelerations(2,:))
-plot(0:dt:dt*iterations, accelerations(3,:))
-plot(0:dt:dt*iterations, accelerations(4,:))
-xlabel('Time (s)')
-ylabel('Joint Accelerations (d_d_theta)') 
-legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+% figure 
+% plot(0:dt:dt*iterations, accelerations(1,:))
+% hold on
+% plot(0:dt:dt*iterations, accelerations(2,:))
+% plot(0:dt:dt*iterations, accelerations(3,:))
+% plot(0:dt:dt*iterations, accelerations(4,:))
+% xlabel('Time (s)')
+% ylabel('Joint Accelerations (d_d_theta)') 
+% legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+% title('Joint Accelerations over Trajectory')
 
 figure 
 plot(0:dt:dt*iterations, torques(1,:))
@@ -114,8 +123,10 @@ plot(0:dt:dt*iterations, torques(2,:))
 plot(0:dt:dt*iterations, torques(3,:))
 plot(0:dt:dt*iterations, torques(4,:))
 xlabel('Time (s)')
-ylabel('Torque (Nm)') 
-legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+ylabel('Joint Torque (Nm)') 
+% legend('Joint E', 'Joint D', 'Joint C', 'Joint B')
+legend('Base Joint', 'Shoulder Joint', 'Elbow Joint', 'Wrist Joint')
+title('Joint Torques over Sample Trajectory')
 
 % plot other coordinate frames
 % trplot(T_screws, 'length', 0.2, 'thick', .2, 'rviz')
