@@ -99,10 +99,8 @@ J_VtoEta = [J1_eta, zeros(3);
             zeros(3), J2_eta];
         
 %% ----- Equations of motion -----
-LHS = (M_RB+M_Adiag)*Vdot + (C_RB+C_A)*V + D*V + Gn;
-% LHS = (M_RB+M_A)*Vdot + (C_RB+C_A)*V + D*V + Gn;
-RHS = TCM*thrustforces;
-eom = LHS == RHS;
+Masses = M_RB+M_Adiag;
+RHS = TCM*thrustforces - ((C_RB+C_A)*V + D*V + Gn);
 
 %% Iterate Dynamics
 % Initial conditions
@@ -124,7 +122,7 @@ earthfixed_positions = zeros(6, length(all_times));
 earthfixed_positions(:,1) = curr_eta;
 
 while n < length(all_times)
-    [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt);
+    [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt);
     trajectory_Vels(:,n+1) = new_V;
     earthfixed_positions(:,n+1) = new_eta;
     curr_V = new_V;
@@ -142,14 +140,10 @@ xlabel('Time (s)')
 ylabel('Velocity')
 legend('u', 'v', 'w', 'p', 'q', 'r')
 
-% figure
+
 End_Orientation = rpy2r(earthfixed_positions(4:6,n).');
 End_Position = earthfixed_positions(1:3,n);
 final_pose = SE3(End_Orientation, End_Position);
-% tranimate(SE3(), final_pose, 'length', 0.1)
-% xlabel('X (m)')
-% ylabel('Y (m)')
-% zlabel('Z (m)')
 
 figure
 axis equal
@@ -166,16 +160,18 @@ trplot(SE3(), 'length', 0.005, 'color', 'g')
 %% ---------------            FUNCTIONS             ----------------------
 % ------------------------------------------------------------------------
 
-function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt)
-    global V Vdot eta thrustforces
-    numeric_eom = subs(eom, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
+function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt)
+    global V eta thrustforces
+    % substitute current state values into equations
+    numeric_RHS = subs(RHS, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
     numeric_J_VtoEta = subs(J_VtoEta, eta, curr_eta);
     eta_dot = numeric_J_VtoEta*curr_V;
     
-    new_acc = solve(numeric_eom, Vdot); % TODO: replace with inverse matrix
+    % Find acceleration of the vehicle
+    new_acc = Masses\numeric_RHS;
 
-    new_V = curr_V + [new_acc.udot, new_acc.vdot, new_acc.wdot, ...
-        new_acc.pdot, new_acc.qdot, new_acc.rdot].'*dt;
+    % Euler forward integration
+    new_V = curr_V + new_acc*dt;
     new_eta = curr_eta + eta_dot*dt;
 end
 

@@ -86,7 +86,7 @@ damp_diags = lin_damp+nonlin_damp*abs(V);
 D = diag(damp_diags);
 
 % ----- G Restoring Forces -----
-[0; 0; 0; -z_b*B*cos(theta)*sin(phi); -z_b*B*sin(theta); 0];
+Gn = [0; 0; 0; -z_b*B*cos(eta(5))*sin(eta(4)); -z_b*B*sin(eta(5)); 0];
 
 % ----- Jacobians between Body Frame and Earth Frame
 J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
@@ -99,23 +99,20 @@ J_VtoEta = [J1_eta, zeros(3);
             zeros(3), J2_eta];
         
 %% ----- Equations of motion -----
-% First: M*vdot + C*v = Thrusters
-% LHS = M_RB*Vdot + C_RB*V;
-LHS = (M_RB+M_Adiag)*Vdot + (C_RB+C_A)*V + D*V;
-RHS = TCM*thrustforces;
-eom = LHS == RHS;
+Masses = M_RB+M_Adiag;
+RHS = TCM*thrustforces - ((C_RB+C_A)*V + D*V + Gn);
 
 %% Iterate Dynamics
 % Initial conditions
 curr_V = [0 0 0 0 0 0].';
 curr_Vdot = [0 0 0 0 0 0].';
-curr_u = [0 0 0 100 10 0].';
+curr_u = [-10 -10 0 10 10 0].';
 curr_eta = [0 0 0 0 0 0].';
 curr_etadot = [0 0 0 0 0 0].';
 
 dt = 0.05;
 T = 0;
-last_time = .25;
+last_time = .5;
 all_times = T:dt:last_time;
 n = 1;
 
@@ -125,7 +122,7 @@ earthfixed_positions = zeros(6, length(all_times));
 earthfixed_positions(:,1) = curr_eta;
 
 while n < length(all_times)
-    [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt);
+    [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt);
     trajectory_Vels(:,n+1) = new_V;
     earthfixed_positions(:,n+1) = new_eta;
     curr_V = new_V;
@@ -138,6 +135,7 @@ hold on
 for direction = 1:6
     plot(all_times, trajectory_Vels(direction,:));
 end
+title('Body Fixed Velocities')
 xlabel('Time (s)')
 ylabel('Velocity')
 legend('u', 'v', 'w', 'p', 'q', 'r')
@@ -160,21 +158,24 @@ xlabel('X (m)')
 ylabel('Y (m)')
 zlabel('Z (m)')
 hold on
+trplot(SE3(), 'length', 0.005, 'color', 'g')
  tranimate(SE3(), final_pose, 'length', 0.005)
 
 %% ---------------            FUNCTIONS             ----------------------
 % ------------------------------------------------------------------------
 
-function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt)
-    global V Vdot eta thrustforces
-    numeric_eom = subs(eom, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
+function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt)
+    global V eta thrustforces
+    numeric_RHS = subs(RHS, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
     numeric_J_VtoEta = subs(J_VtoEta, eta, curr_eta);
     eta_dot = numeric_J_VtoEta*curr_V;
     
-    new_acc = solve(numeric_eom, Vdot); % TODO: replace with inverse matrix
+    new_acc = Masses\numeric_RHS;
+%     new_acc = solve(numeric_eom, Vdot); % TODO: replace with inverse matrix
 
-    new_V = curr_V + [new_acc.udot, new_acc.vdot, new_acc.wdot, ...
-        new_acc.pdot, new_acc.qdot, new_acc.rdot].'*dt;
+%     new_V = curr_V + [new_acc.udot, new_acc.vdot, new_acc.wdot, ...
+%         new_acc.pdot, new_acc.qdot, new_acc.rdot].'*dt;
+    new_V = curr_V + new_acc*dt;
     new_eta = curr_eta + eta_dot*dt;
 end
 
