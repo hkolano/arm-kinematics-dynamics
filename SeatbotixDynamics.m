@@ -1,6 +1,6 @@
 %{
 Set up the dynamics of the Seabotix vehicle
-Last modified by Hannah Kolano 3/30/2021
+Last modified by Hannah Kolano 4/1/2021
 %}
 
 syms u v w p q r
@@ -16,7 +16,7 @@ thrustforces = [u0 u1 u2 u3 u4 u5].';
 close all
 
 
-%% ------------              CONSTANTS                ---------------------
+%% ------------            CONSTANTS                ---------------------
 % ------------------------------------------------------------------------
 
 % ----- M_RB Mass of the Rigid Body -----
@@ -59,7 +59,7 @@ z_b = 0.05;
 B = m*9.81; % Buoyancy force (assume neutrally buoyant)
 
 
-%% ------------               Changing Terms                  --------------
+%% ------------          Changing Terms                  --------------
 %-------------------------------------------------------------------------
 
 % ----- C_RB Coriolis Matrix for the Rigid Body ----- 
@@ -98,29 +98,36 @@ J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin
 J_VtoEta = [J1_eta, zeros(3);
             zeros(3), J2_eta];
         
-%% ----- Equations of motion -----
+%% -----                Equations of motion             -----
 Masses = M_RB+M_Adiag;
 RHS = TCM*thrustforces - ((C_RB+C_A)*V + D*V + Gn);
 
-%% Iterate Dynamics
+%% -------------        Iterate Dynamics            ----------------
 % Initial conditions
+% Body fixed velocity 
 curr_V = [0 0 0 0 0 0].';
+% Body fixed acceleration
 curr_Vdot = [0 0 0 0 0 0].';
+% Thruster outputs (N)
 curr_u = [-10 -10 0 10 10 0].';
+% Earth fixed position
 curr_eta = [0 0 0 0 0 0].';
+% Earth fixed velocity
 curr_etadot = [0 0 0 0 0 0].';
 
-dt = 0.05;
-T = 0;
-last_time = .5;
+dt = 0.05;  % time step
+T = 0;      % initial time
+last_time = .5; % final time
 all_times = T:dt:last_time;
-n = 1;
+n = 1;  % iterator
 
+% Storage for body fixed velocities and earth fixed positions
 trajectory_Vels = zeros(6, length(all_times));
 trajectory_Vels(:,1) = curr_V;
 earthfixed_positions = zeros(6, length(all_times));
 earthfixed_positions(:,1) = curr_eta;
 
+% Iterate the dynamics forward from initial to final time
 while n < length(all_times)
     [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt);
     trajectory_Vels(:,n+1) = new_V;
@@ -130,6 +137,7 @@ while n < length(all_times)
     n = n+1;
 end
 
+%% ------------             Plotting                ----------------
 figure
 hold on
 for direction = 1:6
@@ -140,7 +148,7 @@ xlabel('Time (s)')
 ylabel('Velocity')
 legend('u', 'v', 'w', 'p', 'q', 'r')
 
-
+% Take out these 3 lines if not using Peter Corke TB
 End_Orientation = rpy2r(earthfixed_positions(4:6,n).');
 End_Position = earthfixed_positions(1:3,n);
 final_pose = SE3(End_Orientation, End_Position);
@@ -150,9 +158,12 @@ axis equal
 plot3(earthfixed_positions(1,:), earthfixed_positions(2,:), ...
     earthfixed_positions(3,:), 'r-o');
 grid on
+title('Body Fixed Frame Position in Earth Fixed Frame')
 xlabel('X (m)')
 ylabel('Y (m)')
 zlabel('Z (m)')
+
+% Take out these 3 lines if not using Peter Corke TB
 hold on
 trplot(SE3(), 'length', 0.005, 'color', 'g')
  tranimate(SE3(), final_pose, 'length', 0.005)
