@@ -7,10 +7,13 @@ syms u v w p q r
 syms udot vdot wdot pdot qdot rdot
 syms x y z phi theta psi
 syms u0 u1 u2 u3 u4 u5
+global V Vdot eta thrustforces
 V = [u v w p q r].';  % V
 Vdot = [udot vdot wdot pdot qdot rdot].'; % Vdot
 eta = [x y z phi theta psi].'; % wrt earth
 thrustforces = [u0 u1 u2 u3 u4 u5].';
+
+close all
 
 
 %% ------------              CONSTANTS                ---------------------
@@ -33,6 +36,7 @@ M_A = [ 8.1     -0.07   -1.07   0.09    -1.71   -0.08;
        -0.08    0.65    0.11    0.22    -0.01   2.33];
 % Diagonals of matrix X_ud, Y_vd, Z_wd...
 am = diag(M_A);
+M_Adiag = diag(am);
 
 % ----- TCM Thruster Control Matrix -----
 % Each thruster is a column
@@ -78,34 +82,100 @@ C_A = [0           0           0           0           am(3)*w     -am(2)*v;
 
 % ----- D Damping -----
 % ~ Three degrees of estimation ~
-damp_diags = lin_damp+nonlin_damp.*V.^2;
+damp_diags = lin_damp+nonlin_damp*abs(V);
 D = diag(damp_diags);
 
 % ----- G Restoring Forces -----
 [0; 0; 0; -z_b*B*cos(theta)*sin(phi); -z_b*B*sin(theta); 0];
-   
+
+% ----- Jacobians between Body Frame and Earth Frame
+J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
+        0       cos(eta(4))                -sin(eta(4)); 
+        0       sin(eta(4))/cos(eta(5))     cos(eta(4))/cos(eta(5))];
+J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin(eta(5))*sin(eta(4))    sin(eta(6))*sin(eta(4))+cos(eta(6))*cos(eta(4))*sin(eta(5));
+            sin(eta(6))*cos(eta(5))     cos(eta(6))*cos(eta(4))+sin(eta(4))*sin(eta(5))*sin(eta(6))     -cos(eta(6))*sin(eta(4))+sin(eta(5))*sin(eta(6))*cos(eta(4));
+            -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(phi)];
+J_VtoEta = [J1_eta, zeros(3);
+            zeros(3), J2_eta];
+        
 %% ----- Equations of motion -----
 % First: M*vdot + C*v = Thrusters
-LHS = M_RB*Vdot + C_RB*V;
+% LHS = M_RB*Vdot + C_RB*V;
+LHS = (M_RB+M_Adiag)*Vdot + (C_RB+C_A)*V + D*V;
 RHS = TCM*thrustforces;
-eom = RHS == LHS;
+eom = LHS == RHS;
 
 %% Iterate Dynamics
 % Initial conditions
 curr_V = [0 0 0 0 0 0].';
 curr_Vdot = [0 0 0 0 0 0].';
-curr_u = [1 1 0 0 0 0].';
+curr_u = [0 0 0 100 10 0].';
 curr_eta = [0 0 0 0 0 0].';
+curr_etadot = [0 0 0 0 0 0].';
 
-dt = 0.
+dt = 0.05;
+T = 0;
+last_time = .25;
+all_times = T:dt:last_time;
+n = 1;
 
-function [new_V, new_Vdot, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u)
-numeric_eom = subs(eom, [V, eta, thrustforces], [curr_V, curr_eta, curr_u])
-new_acc = solve(numeric_eom, Vdot) % TODO: replace with inverse matrix
+trajectory_Vels = zeros(6, length(all_times));
+trajectory_Vels(:,1) = curr_V;
+earthfixed_positions = zeros(6, length(all_times));
+earthfixed_positions(:,1) = curr_eta;
 
-dqdt = curr_V;
-dqdot_dt = new_acc;
+while n < length(all_times)
+    [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt);
+    trajectory_Vels(:,n+1) = new_V;
+    earthfixed_positions(:,n+1) = new_eta;
+    curr_V = new_V;
+    curr_eta = new_eta;
+    n = n+1;
+end
 
+figure
+hold on
+for direction = 1:6
+    plot(all_times, trajectory_Vels(direction,:));
+end
+xlabel('Time (s)')
+ylabel('Velocity')
+legend('u', 'v', 'w', 'p', 'q', 'r')
+
+% figure
+End_Orientation = rpy2r(earthfixed_positions(4:6,n).');
+End_Position = earthfixed_positions(1:3,n);
+final_pose = SE3(End_Orientation, End_Position);
+% tranimate(SE3(), final_pose, 'length', 0.1)
+% xlabel('X (m)')
+% ylabel('Y (m)')
+% zlabel('Z (m)')
+
+figure
+axis equal
+plot3(earthfixed_positions(1,:), earthfixed_positions(2,:), ...
+    earthfixed_positions(3,:), 'r-o');
+grid on
+xlabel('X (m)')
+ylabel('Y (m)')
+zlabel('Z (m)')
+hold on
+ tranimate(SE3(), final_pose, 'length', 0.005)
+
+%% ---------------            FUNCTIONS             ----------------------
+% ------------------------------------------------------------------------
+
+function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, eom, J_VtoEta, dt)
+    global V Vdot eta thrustforces
+    numeric_eom = subs(eom, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
+    numeric_J_VtoEta = subs(J_VtoEta, eta, curr_eta);
+    eta_dot = numeric_J_VtoEta*curr_V;
+    
+    new_acc = solve(numeric_eom, Vdot); % TODO: replace with inverse matrix
+
+    new_V = curr_V + [new_acc.udot, new_acc.vdot, new_acc.wdot, ...
+        new_acc.pdot, new_acc.qdot, new_acc.rdot].'*dt;
+    new_eta = curr_eta + eta_dot*dt;
 end
 
 
