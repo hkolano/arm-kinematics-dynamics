@@ -48,5 +48,6 @@ for i = 1:6
     frame_matrices{i}
 end
 axis equal
+grid on
 % trplot(frame_matrices{1}, 'rviz', 'length', .125)
 

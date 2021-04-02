@@ -109,7 +109,7 @@ curr_V = [0 0 0 0 0 0].';
 % Body fixed acceleration
 curr_Vdot = [0 0 0 0 0 0].';
 % Thruster outputs (N)
-curr_u = [-10 -10 0 10 10 0].';
+curr_u = [-10 -10 0 20 20 0].';
 % Earth fixed position
 curr_eta = [0 0 0 0 0 0].';
 % Earth fixed velocity
@@ -148,15 +148,27 @@ xlabel('Time (s)')
 ylabel('Velocity')
 legend('u', 'v', 'w', 'p', 'q', 'r')
 
+figure
+hold on
+for direction = 1:6
+    plot(all_times, earthfixed_positions(direction,:));
+end
+title('Earth Fixed Positions')
+xlabel('Time (s)')
+ylabel('Position (m, rad)')
+legend('x', 'y', 'z', 'roll', 'pitch', 'yaw')
+
 % Take out these 3 lines if not using Peter Corke TB
 End_Orientation = rpy2r(earthfixed_positions(4:6,n).');
 End_Position = earthfixed_positions(1:3,n);
 final_pose = SE3(End_Orientation, End_Position);
 
 figure
-axis equal
+axis([-5 5 -5 5 -5 5])
 plot3(earthfixed_positions(1,:), earthfixed_positions(2,:), ...
     earthfixed_positions(3,:), 'r-o');
+hold on
+plot3([.005, -.002], [-.002, .005], [0, .05], 'k.')
 grid on
 title('Body Fixed Frame Position in Earth Fixed Frame')
 xlabel('X (m)')
@@ -164,9 +176,8 @@ ylabel('Y (m)')
 zlabel('Z (m)')
 
 % Take out these 3 lines if not using Peter Corke TB
-hold on
-trplot(SE3(), 'length', 0.005, 'color', 'g')
- tranimate(SE3(), final_pose, 'length', 0.005)
+trplot(SE3(), 'length', 0.005, 'color', 'g', 'axis', [-5 5 -5 5 -5 5])
+ tranimate(SE3(), final_pose, 'length', 0.005, 'axis', [-5 5 -5 5 -5 5])
 
 %% ---------------            FUNCTIONS             ----------------------
 % ------------------------------------------------------------------------
