@@ -1,6 +1,7 @@
 %{
 Set up the dynamics of the Seabotix vehicle
-Last modified by Hannah Kolano 4/1/2021
+Maintained by Hannah Kolano kolanoh@oregonstate.edu
+Last modified by Scott Chow 5/11/21
 %}
 
 syms u v w p q r
@@ -203,15 +204,15 @@ end
 
 function numeric_J_VtoEta = computeJ_VtoEta(eta)
 
-J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
-        0       cos(eta(4))                -sin(eta(4)); 
-        0       sin(eta(4))/cos(eta(5))     cos(eta(4))/cos(eta(5))];
-J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin(eta(5))*sin(eta(4))    sin(eta(6))*sin(eta(4))+cos(eta(6))*cos(eta(4))*sin(eta(5));
-            sin(eta(6))*cos(eta(5))     cos(eta(6))*cos(eta(4))+sin(eta(4))*sin(eta(5))*sin(eta(6))     -cos(eta(6))*sin(eta(4))+sin(eta(5))*sin(eta(6))*cos(eta(4));
-            -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(eta(4))];
+    J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
+            0       cos(eta(4))                -sin(eta(4)); 
+            0       sin(eta(4))/cos(eta(5))     cos(eta(4))/cos(eta(5))];
+    J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin(eta(5))*sin(eta(4))    sin(eta(6))*sin(eta(4))+cos(eta(6))*cos(eta(4))*sin(eta(5));
+                sin(eta(6))*cos(eta(5))     cos(eta(6))*cos(eta(4))+sin(eta(4))*sin(eta(5))*sin(eta(6))     -cos(eta(6))*sin(eta(4))+sin(eta(5))*sin(eta(6))*cos(eta(4));
+                -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(eta(4))];
 
-numeric_J_VtoEta = [J1_eta, zeros(3);
-            zeros(3), J2_eta];
+    numeric_J_VtoEta = [J1_eta, zeros(3);
+                zeros(3), J2_eta];
 end
 
 
