@@ -1,8 +1,20 @@
 %{
 Set up the dynamics of the Seabotix vehicle
 Maintained by Hannah Kolano kolanoh@oregonstate.edu
-Last modified by Hannah Kolano 5/12/21
+Last modified by Scott Chow 5/11/21
 %}
+
+syms u v w p q r
+syms udot vdot wdot pdot qdot rdot
+syms x y z phi theta psi
+syms u0 u1 u2 u3 u4 u5
+global V Vdot eta thrustforces
+V = [u v w p q r].';  % V
+Vdot = [udot vdot wdot pdot qdot rdot].'; % Vdot
+eta = [x y z phi theta psi].'; % wrt earth
+thrustforces = [u0 u1 u2 u3 u4 u5].';
+
+global TCM z_b B 
 
 close all
 
@@ -27,7 +39,6 @@ mats.M_A = [ 8.1     -0.07   -1.07   0.09    -1.71   -0.08;
 % Diagonals of matrix X_ud, Y_vd, Z_wd...
 params.am = diag(mats.M_A);
 mats.M_Adiag = diag(params.am);
-mats.M = mats.M_RB+mats.M_Adiag;
 
 % ----- TCM Thruster Control Matrix -----
 % Each thruster is a column
@@ -48,6 +59,9 @@ params.nonlin_damp = [34.40 65.86 132.29 11.37 20.04 13.54];
 % Assume distance between R_B and R_G is 0.05m
 params.z_b = 0.05;
 params.Buoy = params.m*9.81; % Buoyancy force (assume neutrally buoyant)
+
+mats.M = mats.M_RB+mats.M_Adiag;
+% RHS = mats.TCM*thrustforces - ((C_RB+C_A)*V + D*V + Gn);
 
 %% -------------        Iterate Dynamics            ----------------
 % Initial conditions
@@ -133,19 +147,17 @@ trplot(SE3(), 'length', 0.005, 'color', 'g', 'axis', [-5 5 -5 5 -5 5])
 
 function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, dt, params, mats)
 
-    % substitute current state values into EOM
+    % substitute current state values into equations
     numeric_RHS = computeRHS(curr_V, curr_eta, curr_u, params, mats);
-    
-    % Find velocity in world frame
     numeric_J_VtoEta = computeJ_VtoEta(curr_eta);
     eta_dot = numeric_J_VtoEta*curr_V;
     
-    % Find acceleration of the vehicle in body frame
+    % Find acceleration of the vehicle
     new_acc = mats.M\numeric_RHS;
 
     % Euler forward integration
-    new_V = curr_V + new_acc*dt; % new body fixed velocity
-    new_eta = curr_eta + eta_dot*dt; % new earth fixed position
+    new_V = curr_V + new_acc*dt;
+    new_eta = curr_eta + eta_dot*dt;
 end
 
 function numeric_J_VtoEta = computeJ_VtoEta(eta)
