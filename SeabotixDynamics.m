@@ -191,7 +191,7 @@ function numeric_RHS = computeRHS(curr_V, curr_eta, curr_u, params, mats)
             -params.am(3)*w     0               params.am(1)*u  -params.am(6)*r    0                    params.am(4)*p;
             params.am(2)*v      -params.am(1)*u 0               params.am(5)*q     -params.am(4)*p      0];
 
-    damp_diags = params.lin_damp+params.nonlin_damp*abs(curr_V);
+    damp_diags = params.lin_damp+params.nonlin_damp.*abs(curr_V)';
     D = diag(damp_diags);
     Gn = [0; 0; 0; -params.z_b*params.Buoy*cos(curr_eta(5))*sin(curr_eta(4)); -params.z_b*params.Buoy*sin(curr_eta(5)); 0];
 
