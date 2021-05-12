@@ -13,6 +13,8 @@ Vdot = [udot vdot wdot pdot qdot rdot].'; % Vdot
 eta = [x y z phi theta psi].'; % wrt earth
 thrustforces = [u0 u1 u2 u3 u4 u5].';
 
+global m Ixx Ixy Iyy Izz am TCM z_b B lin_damp nonlin_damp
+
 close all
 
 
@@ -94,7 +96,7 @@ J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
         0       sin(eta(4))/cos(eta(5))     cos(eta(4))/cos(eta(5))];
 J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin(eta(5))*sin(eta(4))    sin(eta(6))*sin(eta(4))+cos(eta(6))*cos(eta(4))*sin(eta(5));
             sin(eta(6))*cos(eta(5))     cos(eta(6))*cos(eta(4))+sin(eta(4))*sin(eta(5))*sin(eta(6))     -cos(eta(6))*sin(eta(4))+sin(eta(5))*sin(eta(6))*cos(eta(4));
-            -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(phi)];
+            -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(eta(4))];
 J_VtoEta = [J1_eta, zeros(3);
             zeros(3), J2_eta];
         
@@ -117,7 +119,7 @@ curr_etadot = [0 0 0 0 0 0].';
 
 dt = 0.05;  % time step
 T = 0;      % initial time
-last_time = .5; % final time
+last_time = 1.00; % final time
 all_times = T:dt:last_time;
 n = 1;  % iterator
 
@@ -129,6 +131,8 @@ earthfixed_positions(:,1) = curr_eta;
 
 % Iterate the dynamics forward from initial to final time
 while n < length(all_times)
+    fprintf("%d/%d\n",n, length(all_times))
+
     [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt);
     trajectory_Vels(:,n+1) = new_V;
     earthfixed_positions(:,n+1) = new_eta;
@@ -183,10 +187,10 @@ trplot(SE3(), 'length', 0.005, 'color', 'g', 'axis', [-5 5 -5 5 -5 5])
 % ------------------------------------------------------------------------
 
 function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS, Masses, J_VtoEta, dt)
-    global V eta thrustforces
+
     % substitute current state values into equations
-    numeric_RHS = subs(RHS, [V, eta, thrustforces], [curr_V, curr_eta, curr_u]);
-    numeric_J_VtoEta = subs(J_VtoEta, eta, curr_eta);
+    numeric_RHS = computeRHS(curr_V, curr_eta, curr_u);
+    numeric_J_VtoEta = computeJ_VtoEta(curr_eta);
     eta_dot = numeric_J_VtoEta*curr_V;
     
     % Find acceleration of the vehicle
@@ -197,5 +201,54 @@ function [new_V, new_eta] = step_dynamics_forward(curr_V, curr_eta, curr_u, RHS,
     new_eta = curr_eta + eta_dot*dt;
 end
 
+function numeric_J_VtoEta = computeJ_VtoEta(eta)
+
+J2_eta = [1     sin(eta(4))*tan(eta(5))     cos(eta(4))*tan(eta(5));
+        0       cos(eta(4))                -sin(eta(4)); 
+        0       sin(eta(4))/cos(eta(5))     cos(eta(4))/cos(eta(5))];
+J1_eta = [  cos(eta(6))*cos(eta(5))     -sin(eta(6))*cos(eta(4))+cos(eta(6))*sin(eta(5))*sin(eta(4))    sin(eta(6))*sin(eta(4))+cos(eta(6))*cos(eta(4))*sin(eta(5));
+            sin(eta(6))*cos(eta(5))     cos(eta(6))*cos(eta(4))+sin(eta(4))*sin(eta(5))*sin(eta(6))     -cos(eta(6))*sin(eta(4))+sin(eta(5))*sin(eta(6))*cos(eta(4));
+            -sin(eta(5))                cos(eta(5))*sin(eta(4))                                         cos(eta(5))*cos(eta(4))];
+
+numeric_J_VtoEta = [J1_eta, zeros(3);
+            zeros(3), J2_eta];
+end
+
+
+function numeric_RHS = computeRHS(curr_V, curr_eta, curr_u)
+
+global m Ixx Ixy Iyy Izz am TCM z_b B lin_damp nonlin_damp
+
+% was too lazy to do find and replace on the matrices below
+% can refactor this for cleanliness later
+u = curr_V(1);
+v = curr_V(2); 
+w = curr_V(3); 
+p = curr_V(4); 
+q = curr_V(5); 
+r = curr_V(6); 
+
+C_RB = [0       0       0       0       m*w     -m*v;
+        0       0       0       -m*w    0       m*u;
+        0       0       0       m*v     -m*u    0;
+        0       m*w     -m*v    0       Izz*r   -Iyy*q;
+        -m*w    0       m*u     -Izz*r  0       Ixx*p;
+        m*v     -m*u    0       Iyy*q   -Ixx*p  0];
+    
+% ----- C_A Coriolis Matrix for the Added Mass ----- 
+% Antonelli 2006, p27
+C_A = [0           0           0           0           am(3)*w     -am(2)*v;
+        0           0           0           -am(3)*w    0           am(1)*u;
+        0           0           0           am(2)*v     -am(1)*u    0;
+        0           am(3)*w     -am(2)*v    0           am(6)*r     -am(5)*q;
+        -am(3)*w    0           am(1)*u     -am(6)*r    0           am(4)*p;
+        am(2)*v     -am(1)*u    0           am(5)*q     -am(4)*p    0];
+
+damp_diags = lin_damp+nonlin_damp*abs(curr_V);
+D = diag(damp_diags);
+Gn = [0; 0; 0; -z_b*B*cos(curr_eta(5))*sin(curr_eta(4)); -z_b*B*sin(curr_eta(5)); 0];
+
+numeric_RHS = TCM*curr_u - ((C_RB+C_A)*curr_V + D*curr_V + Gn);
+end
 
    
