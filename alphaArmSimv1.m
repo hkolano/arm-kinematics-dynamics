@@ -48,8 +48,8 @@ curr_theta = thetalist; curr_dtheta = dthetalist; curr_ddtheta = ddthetalist;
 torques = taulist;
 theta_start = curr_theta;
 dtheta_start = curr_dtheta;
-theta_end = [-84 24 -96 120 0].'*pi/180;
-% theta_end = [0 0 0 0 0].';
+% theta_end = [-84 24 -96 120 0].'*pi/180;
+theta_end = [0 0 0 0 0].';
 dtheta_end = [0 0 0 0 0].'*pi/180;
 
 iterations = 50;
@@ -138,7 +138,7 @@ end
 
 %% ---------- Dynamics iterator ---------
 function [theta_new, dtheta_new, ddtheta_new, taulist] = step_dynamics_forward(thetalist, dthetalist, ddthetalist, Ftip, g, dt)
-[MassM, RHS, taulist] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g);
+[MassM, RHS, taulist] = closedFormInverseDynamics(5, thetalist, dthetalist, ddthetalist, Ftip, g)
 dqdt = dthetalist;
 dqdot_dt = MassM\(taulist - RHS);
 

@@ -96,11 +96,11 @@ function [MM, RHS, taulist] = closedFormInverseDynamics(dof, thetalist, dthetali
     taulist_water = MM_plus_AM*ddthetalist + Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
     
 %     Outputs:
-    MM = MM_plus_AM;
-    RHS = Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
-    taulist = taulist_water;
-%     MM = MassMatrix;
-%     RHS = Coriolis + GravityMatrix + JTFtip;
-%     taulist = taulist_air;
+%     MM = MM_plus_AM;
+%     RHS = Cor_plus_AM + GravityMatrix + AntiGravityMatrix + JTFtip;
+%     taulist = taulist_water;
+    MM = MassMatrix;
+    RHS = Coriolis + GravityMatrix + JTFtip;
+    taulist = taulist_air;
     
 end

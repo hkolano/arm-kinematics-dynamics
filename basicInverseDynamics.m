@@ -1,12 +1,15 @@
 
 function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddthetalist, Ftip)
+
+    addpath('C:\Users\hkolano\Documents\GitHub\ModernRobotics\packages\MATLAB\mr')
+    
     % Get kinematic and dynamic values
-    [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist] = AlphaKinematics();
+    [~, ~, MlistForward, MlistBackward, Slist, Alist, Glist, GpAlist] = AlphaKinematics();
     
     % Twist of base in world frame 
     V0 = [0; 0; 0; 0; 0; 0];
     % Acceleration of base in world frame (gravity)
-    V0_dot = [0; 0; 0; 0; 0; -9.81];
+    V0_dot = [0; 0; 0; 0; 0; 9.81];
     
     % LinkTwists{1} = base, LinkTwists{2} = link1, etc
     LinkTwists = {};
@@ -43,6 +46,7 @@ function ActuatorTorques = basicInverseDynamics(dof, thetalist, dthetalist, ddth
     
     for j = dof:-1:1
         G_j = Glist(:,:,j);
+%         G_j = GpAlist(:,:,j);
         F_jplus1 = ForcesThrough{j+1};
         V_j = LinkTwists{j+1};
         Vdot_j = DeltaLinkTwists{j+1};
